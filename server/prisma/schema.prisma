@@ -1,0 +1,298 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Admin Users ──────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─── Site-wide Settings ───────────────────────────────────────────────────────
+
+model SiteSettings {
+  id                String  @id @default("default")
+  siteName          String  @default("Tania Subhashita")
+  siteTagline       String  @default("Psychologist · Mental Health Expert")
+  announcementText  String  @default("")
+  announcementActive Boolean @default(true)
+  facebookUrl       String  @default("")
+  instagramUrl      String  @default("")
+  linkedinUrl       String  @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ─── Home Page: Hero Section ──────────────────────────────────────────────────
+
+model HeroSection {
+  id                  String  @id @default("default")
+  tagline             String  @default("Psychotherapy · Counselling · Dhaka Location")
+  titleLine1          String  @default("Reconnect")
+  titleLine2          String  @default("with your")
+  titleLine3          String  @default("true self.")
+  description         String  @default("")
+  ctaPrimaryText      String  @default("Book 20-Min Free Consult")
+  ctaSecondaryText    String  @default("Our services")
+  portraitImageUrl    String  @default("")
+  portraitQuote       String  @default("Helping you heal, grow, and thrive — every day.")
+  portraitAttribution String  @default("— Tania Subhashita")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// ─── Home Page: Statistics ────────────────────────────────────────────────────
+
+model Statistic {
+  id        String   @id @default(cuid())
+  value     String
+  label     String
+  detail    String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Home Page: Welcome Section ───────────────────────────────────────────────
+
+model WelcomeSection {
+  id               String  @id @default("default")
+  scriptTitle      String  @default("Welcome")
+  heading          String  @default("You do not have to carry your heavy mental burdens entirely on your own.")
+  paragraph1       String  @default("")
+  paragraph2       String  @default("")
+  credentialName   String  @default("Tania Subhashita")
+  credentialTitle  String  @default("MA in Psychology & Clinical Social Work (University of Dhaka). Specializing in Cognitive and Compassion-focused therapies.")
+  portraitImageUrl String  @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── Home Page: Methodology Quote ─────────────────────────────────────────────
+
+model MethodologyQuote {
+  id           String  @id @default("default")
+  scriptTitle  String  @default("At your own pace")
+  quote        String  @default("")
+  attribution  String  @default("— Tania Subhashita, Clinical Psychologist")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─── Home Page: CTA Section ───────────────────────────────────────────────────
+
+model CTASection {
+  id           String  @id @default("default")
+  heading      String  @default("Wherever you represent yourself right now, you do not have to stay trapped there.")
+  subtitle     String  @default("The subsequent chapter of your life can start this evening. Reclaim control with zero pressure.")
+  scriptTitle  String  @default("Begin your emotional journey")
+  buttonText   String  @default("Schedule Consultation")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─── Services ─────────────────────────────────────────────────────────────────
+
+model Service {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  category    String
+  iconName    String   @default("Sparkles")
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Programs ─────────────────────────────────────────────────────────────────
+
+model Program {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  subtitle    String
+  duration    String
+  description String
+  details     String[] // PostgreSQL array
+  suitability String
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Blog Posts ───────────────────────────────────────────────────────────────
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  date      String
+  category  String
+  summary   String
+  content   String   @db.Text
+  readTime  String   @default("5 min read")
+  published Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  gender    String   @default("female")
+  text      String
+  role      String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── FAQs ─────────────────────────────────────────────────────────────────────
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Gallery Images ───────────────────────────────────────────────────────────
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String
+  altText   String   @default("")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Contact Info ─────────────────────────────────────────────────────────────
+
+model ContactInfo {
+  id              String  @id @default("default")
+  clinicName      String  @default("MIND CARE")
+  address         String  @default("")
+  city            String  @default("Dhaka")
+  phone           String  @default("")
+  email           String  @default("")
+  officeHours     String  @default("")
+  mapEmbedUrl     String  @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── About Page ───────────────────────────────────────────────────────────────
+
+model AboutSection {
+  id               String   @id @default("default")
+  tagline          String   @default("Professional Bio")
+  heading          String   @default("Meet Tania Subhashita")
+  bio1             String   @default("") @db.Text
+  bio2             String   @default("") @db.Text
+  quote            String   @default("")
+  location         String   @default("Dhaka & Online")
+  experience       String   @default("10+ Years clinical focus")
+  portraitImageUrl String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── About Page: Credentials ──────────────────────────────────────────────────
+
+model Credential {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── About Page: Methodology Steps ────────────────────────────────────────────
+
+model MethodologyStep {
+  id          String   @id @default(cuid())
+  stepNumber  String   @default("01/")
+  title       String
+  description String   @db.Text
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Assessment Questions ─────────────────────────────────────────────────────
+
+model AssessmentQuestion {
+  id        String   @id @default(cuid())
+  text      String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Assessment Score Bands ───────────────────────────────────────────────────
+
+model AssessmentScoreBand {
+  id        String   @id @default(cuid())
+  minScore  Int
+  maxScore  Int
+  emoji     String   @default("")
+  label     String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Booking Settings (singleton) ────────────────────────────────────────────
+
+model BookingSettings {
+  id               String   @id @default("default")
+  whatsappNumber   String   @default("8801580700700")
+  timeSlots        String   @default("10:00 AM\n11:00 AM\n02:00 PM\n04:00 PM\n06:00 PM\n07:00 PM") @db.Text
+  sessionDurations String   @default("20-Min Intro (Free)\n50-Min Full Session") @db.Text
+  introText        String   @default("Your first introductory consultation includes 20 free minutes with absolutely zero obligation.")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── Appointments ─────────────────────────────────────────────────────────────
+
+model Appointment {
+  id            String   @id @default(cuid())
+  clientName    String
+  clientPhone   String
+  clientEmail   String   @default("")
+  service       String   @default("")
+  sessionType   String   @default("free")
+  format        String   @default("online")
+  preferredDate String
+  preferredTime String
+  message       String   @default("") @db.Text
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
