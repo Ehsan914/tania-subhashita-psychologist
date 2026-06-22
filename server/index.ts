@@ -1,12 +1,15 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import apiRoutes from './routes/api.js';
 import adminRoutes from './routes/admin.js';
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 3001;
+const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ─── Middleware ─────────────────────────────────────────────────────────────────
 app.use(cors({
@@ -25,6 +28,13 @@ app.use('/api/admin', adminRoutes);
 // ─── Health Check ──────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ─── Serve React client (production) ───────────────────────────────────────────
+const clientDist = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(clientDist));
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(clientDist, 'index.html'));
 });
 
 // ─── Error Handler ─────────────────────────────────────────────────────────────

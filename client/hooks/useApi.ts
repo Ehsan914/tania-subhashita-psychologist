@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 
+// In dev: empty string → Vite proxy handles /api/* and /auth/*
+// In production: set VITE_API_URL to your Railway server URL (e.g. https://mindcare-server.up.railway.app)
+export const API = import.meta.env.VITE_API_URL ?? '';
+
 const TOKEN_KEY = 'mindcare_admin_token';
 
 function getAuthHeaders(): HeadersInit {
@@ -26,7 +30,7 @@ export function useApiData<T>(endpoint: string, defaultValue: T): {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/${endpoint}`);
+      const res = await fetch(`${API}/api/${endpoint}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json ?? defaultValue);
@@ -60,7 +64,7 @@ export function useAdminData<T>(endpoint: string, defaultValue: T): {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/${endpoint}`, {
+      const res = await fetch(`${API}/api/admin/${endpoint}`, {
         headers: getAuthHeaders(),
       });
       if (!res.ok) {
@@ -95,7 +99,7 @@ export async function adminApi<T = any>(
   if (body && method !== 'GET' && method !== 'DELETE') {
     options.body = JSON.stringify(body);
   }
-  const res = await fetch(`/api/admin/${endpoint}`, options);
+  const res = await fetch(`${API}/api/admin/${endpoint}`, options);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Request failed' }));
     throw new Error(err.error || `HTTP ${res.status}`);

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { API } from '../hooks/useApi';
 
 interface User {
   email: string;
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const res = await fetch('/auth/me', {
+      const res = await fetch(`${API}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -79,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const res = await fetch('/auth/login', {
+      const res = await fetch(`${API}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -103,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       const token = getStoredToken();
-      await fetch('/auth/logout', {
+      await fetch(`${API}/auth/logout`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });

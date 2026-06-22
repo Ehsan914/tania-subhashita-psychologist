@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { API } from '../hooks/useApi';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -218,7 +219,7 @@ const SiteDataContext = createContext<SiteDataContextType>(defaultValue);
 
 async function fetchJson<T>(endpoint: string): Promise<T | null> {
   try {
-    const res = await fetch(`/api/${endpoint}`);
+    const res = await fetch(`${API}/api/${endpoint}`);
     if (!res.ok) return null;
     return await res.json();
   } catch {

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "start": "node index.js",
+    "start": "tsx index.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
@@ -20,7 +20,8 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.16.0"
+    "pg": "^8.16.0",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -29,7 +30,6 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.19.21",
     "prisma": "^7.8.0",
-    "tsx": "^4.21.0",
     "typescript": "~5.8.2"
   },
   "description": "",

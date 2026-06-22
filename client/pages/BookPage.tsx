@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Check, ShieldAlert, MessageCircle, Loader2 } from 'lucide-react';
 import { useSiteData } from '../context/SiteDataContext';
+import { API } from '../hooks/useApi';
 import { Reveal } from '../components/Reveal';
 
 interface BookingSettings {
@@ -37,7 +38,7 @@ export default function BookPage() {
   const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    fetch('/api/booking-settings')
+    fetch(`${API}/api/booking-settings`)
       .then(r => r.ok ? r.json() : null)
       .then((data: BookingSettings | null) => {
         if (data) {
@@ -75,7 +76,7 @@ export default function BookPage() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/book', {
+      const res = await fetch(`${API}/api/book`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
