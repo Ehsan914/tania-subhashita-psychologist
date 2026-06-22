@@ -12,8 +12,20 @@ const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ─── Middleware ─────────────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.APP_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: process.env.APP_URL || 'http://localhost:3000',
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.some(o => origin.startsWith(o))) {
+      cb(null, true);
+    } else {
+      cb(new Error(`CORS: ${origin} not allowed`));
+    }
+  },
   credentials: true,
 }));
 
