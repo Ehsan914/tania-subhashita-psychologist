@@ -56,20 +56,21 @@ export default function AdminUsers() {
   const [modal, setModal] = useState<Modal>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
 
   const isSuperAdmin = me?.isSuperAdmin ?? false;
 
   // ── Add user form state ──
-  const [addForm, setAddForm] = useState({ email: '', name: '', role: '', password: '', isSuperAdmin: false });
+  const [addForm, setAddForm] = useState({ email: '', name: '', role: '', isSuperAdmin: false });
 
   // ── Edit profile form state ──
-  const [editForm, setEditForm] = useState({ name: '', role: '', avatarUrl: '' });
+  const [editForm, setEditForm] = useState({ email: '', name: '', role: '', avatarUrl: '' });
 
   // ── Password form state ──
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
   function openEdit(user: AdminUser) {
-    setEditForm({ name: user.name ?? '', role: user.role ?? '', avatarUrl: user.avatarUrl ?? '' });
+    setEditForm({ email: user.email, name: user.name ?? '', role: user.role ?? '', avatarUrl: user.avatarUrl ?? '' });
     setError('');
     setModal({ type: 'edit', user });
   }
@@ -81,19 +82,19 @@ export default function AdminUsers() {
   }
 
   function openAdd() {
-    setAddForm({ email: '', name: '', role: '', password: '', isSuperAdmin: false });
+    setAddForm({ email: '', name: '', role: '', isSuperAdmin: false });
+    setGeneratedPassword(null);
     setError('');
     setModal({ type: 'add' });
   }
 
   async function handleAdd() {
-    if (!addForm.email || !addForm.password) { setError('Email and password are required.'); return; }
-    if (addForm.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (!addForm.email) { setError('Email is required.'); return; }
     setSaving(true); setError('');
     try {
-      await adminApi('users', 'POST', addForm);
+      const result = await adminApi<AdminUser & { generatedPassword: string }>('users', 'POST', addForm);
+      setGeneratedPassword(result.generatedPassword);
       await refetch();
-      setModal(null);
     } catch (e: any) { setError(e.message); }
     finally { setSaving(false); }
   }
@@ -188,16 +189,16 @@ export default function AdminUsers() {
 
               <div className="flex items-center gap-2 shrink-0">
                 {canEdit(u) && (
-                  <>
-                    <button onClick={() => openEdit(u)} title="Edit profile"
-                      className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => openPassword(u)} title="Change password"
-                      className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
-                      <KeyRound className="w-4 h-4" />
-                    </button>
-                  </>
+                  <button onClick={() => openEdit(u)} title="Edit profile"
+                    className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                )}
+                {isSuperAdmin && (
+                  <button onClick={() => openPassword(u)} title="Change password"
+                    className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+                    <KeyRound className="w-4 h-4" />
+                  </button>
                 )}
                 {canDelete(u) && (
                   <button onClick={() => { setError(''); setModal({ type: 'delete', user: u }); }} title="Delete user"
@@ -213,22 +214,43 @@ export default function AdminUsers() {
 
       {/* ── Add Modal ── */}
       {modal?.type === 'add' && (
-        <ModalShell title="Add Admin User" onClose={() => setModal(null)}>
+        <ModalShell title="Add Admin User" onClose={() => { setGeneratedPassword(null); setModal(null); }}>
           <div className="space-y-4">
-            <InputField label="Email" value={addForm.email} onChange={v => setAddForm(f => ({ ...f, email: v }))} type="email" placeholder="user@example.com" required />
-            <InputField label="Display Name" value={addForm.name} onChange={v => setAddForm(f => ({ ...f, name: v }))} placeholder="e.g. Tania Subhashita" />
-            <InputField label="Role" value={addForm.role} onChange={v => setAddForm(f => ({ ...f, role: v }))} placeholder="e.g. Content Editor" />
-            <InputField label="Password" value={addForm.password} onChange={v => setAddForm(f => ({ ...f, password: v }))} type="password" placeholder="Min. 8 characters" required />
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={addForm.isSuperAdmin}
-                onChange={e => setAddForm(f => ({ ...f, isSuperAdmin: e.target.checked }))}
-                className="w-4 h-4 rounded accent-amber-500 bg-[#12121f] border-white/10" />
-              <span className="text-sm text-gray-300 flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-amber-400" /> Grant super admin privileges
-              </span>
-            </label>
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            <ModalActions onCancel={() => setModal(null)} onConfirm={handleAdd} saving={saving} confirmLabel="Add User" />
+            {generatedPassword ? (
+              <>
+                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
+                  <p className="text-green-400 text-sm font-medium mb-3">User created! Share this password with them:</p>
+                  <div className="flex items-center gap-2 bg-[#12121f] border border-white/10 rounded-xl px-4 py-3">
+                    <span className="flex-1 font-mono text-white tracking-widest text-lg">{generatedPassword}</span>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(generatedPassword)}
+                      className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0 transition-colors"
+                    >Copy</button>
+                  </div>
+                  <p className="text-gray-500 text-xs mt-2">This password will not be shown again.</p>
+                </div>
+                <button
+                  onClick={() => { setGeneratedPassword(null); setModal(null); }}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
+                >Done</button>
+              </>
+            ) : (
+              <>
+                <InputField label="Email" value={addForm.email} onChange={v => setAddForm(f => ({ ...f, email: v }))} type="email" placeholder="user@example.com" required />
+                <InputField label="Display Name" value={addForm.name} onChange={v => setAddForm(f => ({ ...f, name: v }))} placeholder="Defaults to username part of email" />
+                <InputField label="Role" value={addForm.role} onChange={v => setAddForm(f => ({ ...f, role: v }))} placeholder="Defaults to User" />
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={addForm.isSuperAdmin}
+                    onChange={e => setAddForm(f => ({ ...f, isSuperAdmin: e.target.checked }))}
+                    className="w-4 h-4 rounded accent-amber-500 bg-[#12121f] border-white/10" />
+                  <span className="text-sm text-gray-300 flex items-center gap-1.5">
+                    <Shield className="w-4 h-4 text-amber-400" /> Grant super admin privileges
+                  </span>
+                </label>
+                {error && <p className="text-red-400 text-sm">{error}</p>}
+                <ModalActions onCancel={() => setModal(null)} onConfirm={handleAdd} saving={saving} confirmLabel="Add User" />
+              </>
+            )}
           </div>
         </ModalShell>
       )}
@@ -237,6 +259,9 @@ export default function AdminUsers() {
       {modal?.type === 'edit' && (
         <ModalShell title="Edit Profile" onClose={() => setModal(null)}>
           <div className="space-y-4">
+            {isSuperAdmin && (
+              <InputField label="Email" value={editForm.email} onChange={v => setEditForm(f => ({ ...f, email: v }))} type="email" placeholder="user@example.com" required />
+            )}
             <InputField label="Display Name" value={editForm.name} onChange={v => setEditForm(f => ({ ...f, name: v }))} placeholder="e.g. Tania Subhashita" />
             <InputField label="Role" value={editForm.role} onChange={v => setEditForm(f => ({ ...f, role: v }))} placeholder="e.g. Content Editor" />
             <InputField label="Avatar URL" value={editForm.avatarUrl} onChange={v => setEditForm(f => ({ ...f, avatarUrl: v }))} placeholder="https://..." />
