@@ -493,8 +493,10 @@ router.delete('/appointments/:id', async (req: AuthenticatedRequest, res: Respon
 
 // ─── Admin Users ──────────────────────────────────────────────────────────────
 
-router.get('/users', async (_req: AuthenticatedRequest, res: Response) => {
+router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
+  const { userId, isSuperAdmin } = req.user!;
   const users = await prisma.adminUser.findMany({
+    where: isSuperAdmin ? undefined : { id: userId },
     orderBy: { createdAt: 'asc' },
     select: { id: true, email: true, name: true, avatarUrl: true, role: true, isSuperAdmin: true, createdAt: true },
   });
