@@ -577,6 +577,19 @@ router.post('/users/:id/change-password', requireSuperAdmin, async (req: Authent
   res.json({ success: true });
 });
 
+router.post('/users/:id/regenerate-password', requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const target = await prisma.adminUser.findUnique({ where: { id } });
+  if (!target) return res.status(404).json({ error: 'User not found' });
+
+  const generatedPassword = generatePassword();
+  const passwordHash = await bcrypt.hash(generatedPassword, 12);
+  await prisma.adminUser.update({ where: { id }, data: { passwordHash } });
+  await prisma.adminSession.deleteMany({ where: { adminUserId: id } });
+
+  res.json({ generatedPassword });
+});
+
 router.delete('/users/:id', requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   if (id === req.user!.userId) {

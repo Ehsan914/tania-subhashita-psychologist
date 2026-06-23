@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAdminData, adminApi } from '../hooks/useApi';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Pencil, Trash2, X, Loader2, Shield, ShieldCheck, KeyRound, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Loader2, Shield, ShieldCheck, KeyRound, User, RefreshCw } from 'lucide-react';
 
 interface AdminUser {
   id: string;
@@ -57,6 +57,8 @@ export default function AdminUsers() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [regenResult, setRegenResult] = useState<{ user: AdminUser; password: string } | null>(null);
+  const [regenLoading, setRegenLoading] = useState<string | null>(null); // holds user id while regenerating
 
   const isSuperAdmin = me?.isSuperAdmin ?? false;
 
@@ -137,6 +139,18 @@ export default function AdminUsers() {
     finally { setSaving(false); }
   }
 
+  async function handleRegen(u: AdminUser) {
+    setRegenLoading(u.id);
+    try {
+      const result = await adminApi<{ generatedPassword: string }>(`users/${u.id}/regenerate-password`, 'POST');
+      setRegenResult({ user: u, password: result.generatedPassword });
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setRegenLoading(null);
+    }
+  }
+
   const canEdit = (u: AdminUser) => isSuperAdmin || u.id === me?.id;
   const canDelete = (u: AdminUser) => isSuperAdmin && u.id !== me?.id;
 
@@ -195,10 +209,18 @@ export default function AdminUsers() {
                   </button>
                 )}
                 {isSuperAdmin && (
-                  <button onClick={() => openPassword(u)} title="Change password"
-                    className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
-                    <KeyRound className="w-4 h-4" />
-                  </button>
+                  <>
+                    <button onClick={() => openPassword(u)} title="Change password"
+                      className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+                      <KeyRound className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleRegen(u)} title="Regenerate password" disabled={regenLoading === u.id}
+                      className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors disabled:opacity-50">
+                      {regenLoading === u.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <RefreshCw className="w-4 h-4" />}
+                    </button>
+                  </>
                 )}
                 {canDelete(u) && (
                   <button onClick={() => { setError(''); setModal({ type: 'delete', user: u }); }} title="Delete user"
@@ -288,6 +310,29 @@ export default function AdminUsers() {
             <InputField label="Confirm New Password" value={pwForm.confirmPassword} onChange={v => setPwForm(f => ({ ...f, confirmPassword: v }))} type="password" required />
             {error && <p className="text-red-400 text-sm">{error}</p>}
             <ModalActions onCancel={() => setModal(null)} onConfirm={handlePassword} saving={saving} confirmLabel="Change Password" />
+          </div>
+        </ModalShell>
+      )}
+
+      {/* ── Regenerate Password Result Modal ── */}
+      {regenResult && (
+        <ModalShell title="New Password Generated" onClose={() => setRegenResult(null)}>
+          <div className="space-y-4">
+            <p className="text-gray-300 text-sm">
+              Share this new password with <span className="text-white font-medium">{regenResult.user.name ?? regenResult.user.email}</span>. Their previous password and all active sessions have been invalidated.
+            </p>
+            <div className="flex items-center gap-2 bg-[#12121f] border border-white/10 rounded-xl px-4 py-3">
+              <span className="flex-1 font-mono text-white tracking-widest text-lg">{regenResult.password}</span>
+              <button
+                onClick={() => navigator.clipboard.writeText(regenResult.password)}
+                className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0 transition-colors"
+              >Copy</button>
+            </div>
+            <p className="text-gray-500 text-xs">This password will not be shown again.</p>
+            <button
+              onClick={() => setRegenResult(null)}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
+            >Done</button>
           </div>
         </ModalShell>
       )}
