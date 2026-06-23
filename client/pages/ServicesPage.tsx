@@ -13,20 +13,24 @@ export default function ServicesPage() {
   const [servicesCategory, setServicesCategory] = useState<string>('All');
   const [selectedServiceDetail, setSelectedServiceDetail] = useState<ServiceData | null>(null);
 
+  const scrollToDrawer = () => {
+    setTimeout(() => {
+      const el = document.getElementById('selected-service-drawer');
+      if (el) {
+        const headerHeight = document.getElementById('header')?.offsetHeight ?? 72;
+        const top = el.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 50);
+  };
+
   useEffect(() => {
     const slug = (location.state as { openServiceSlug?: string } | null)?.openServiceSlug;
     if (slug && services.length > 0) {
       const match = services.find(s => s.slug === slug);
       if (match) {
         setSelectedServiceDetail(match);
-        setTimeout(() => {
-          const el = document.getElementById('selected-service-drawer');
-          if (el) {
-            const headerHeight = document.getElementById('header')?.offsetHeight ?? 72;
-            const top = el.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
-            window.scrollTo({ top, behavior: 'smooth' });
-          }
-        }, 150);
+        scrollToDrawer();
       }
     }
   }, [location.state, services]);
@@ -74,24 +78,29 @@ export default function ServicesPage() {
             </button>
           </div>
           <p className="text-sm sm:text-base text-[#FAF4E2]/90 leading-relaxed max-w-3xl mb-6">{selectedServiceDetail.description}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-5 rounded border border-white/5 mb-6 text-xs text-[#FAF4E2]/85">
-            <div>
-              <h4 className="font-bold text-[#E4B24C] uppercase tracking-wider mb-2">What we target in therapy sessions:</h4>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2"><Check className="w-3.5 h-3.5 text-[#E4B24C] shrink-0 mt-0.5" /> Initial diagnostics &amp; cognitive distortion mapping.</li>
-                <li className="flex items-start gap-2"><Check className="w-3.5 h-3.5 text-[#E4B24C] shrink-0 mt-0.5" /> Somatic regulation protocols &amp; distress containment plans.</li>
-                <li className="flex items-start gap-2"><Check className="w-3.5 h-3.5 text-[#E4B24C] shrink-0 mt-0.5" /> Direct Homework sheets to build practical physical habits.</li>
-              </ul>
+          {(selectedServiceDetail.treatmentPoints || selectedServiceDetail.clinicNote) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-5 rounded border border-white/5 mb-6 text-xs text-[#FAF4E2]/85">
+              {selectedServiceDetail.treatmentPoints && (
+                <div>
+                  <h4 className="font-bold text-[#E4B24C] uppercase tracking-wider mb-2">What we target in therapy sessions:</h4>
+                  <ul className="space-y-2">
+                    {selectedServiceDetail.treatmentPoints.split('\n').filter(Boolean).map((point, i) => (
+                      <li key={i} className="flex items-start gap-2"><Check className="w-3.5 h-3.5 text-[#E4B24C] shrink-0 mt-0.5" /> {point}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {selectedServiceDetail.clinicNote && (
+                <div>
+                  <h4 className="font-bold text-[#E4B24C] uppercase tracking-wider mb-2">Clinic Delivery:</h4>
+                  <p>{selectedServiceDetail.clinicNote}</p>
+                </div>
+              )}
             </div>
-            <div>
-              <h4 className="font-bold text-[#E4B24C] uppercase tracking-wider mb-2">Clinic Delivery:</h4>
-              <p className="mb-2">Available both in-person at <strong className="text-[#E4B24C]">MIND CARE (New Eskaton, Dhaka)</strong> or via highly secure zoom tele-consultation.</p>
-              <p>Includes a personalized recovery template and ongoing email support between sessions.</p>
-            </div>
-          </div>
+          )}
           <div className="flex flex-wrap gap-4">
             <button onClick={() => handleBookFromService(selectedServiceDetail.slug)} className="bg-[#E4B24C] text-[#3A2C0A] hover:bg-[#FAF4E2] hover:text-[#1C4751] text-xs font-bold uppercase tracking-widest px-6 py-3 rounded cursor-pointer transition" id="book-selected-service">
-              Book Session for This Focus
+              Book Session for This Therapy
             </button>
             <button onClick={() => setSelectedServiceDetail(null)} className="border border-[#FAF4E2]/30 text-[#FAF4E2] text-xs font-bold uppercase tracking-widest px-6 py-3 rounded cursor-pointer hover:bg-white/5 transition" id="back-to-all-services">
               ← Back to All Services
@@ -131,7 +140,7 @@ export default function ServicesPage() {
                 <p className="text-xs text-[#5C6A6C] leading-relaxed mb-4 line-clamp-3">{srv.description}</p>
               </div>
               <div className="pt-4 border-t border-[#1C4751]/5 flex justify-between items-center mt-3">
-                <button onClick={() => setSelectedServiceDetail(srv)} className="text-xs font-semibold text-[#1C4751] hover:underline cursor-pointer" id={`read-more-${srv.slug}`}>
+                <button onClick={() => { setSelectedServiceDetail(srv); scrollToDrawer(); }} className="text-xs font-semibold text-[#1C4751] hover:underline cursor-pointer" id={`read-more-${srv.slug}`}>
                   Read treatment schema
                 </button>
                 <button onClick={() => handleBookFromService(srv.slug)} className="bg-[#EFE5C8] hover:bg-[#E4B24C] hover:text-[#3A2C0A] text-[#1C4751] text-[10px] font-bold uppercase tracking-wider py-1.5 px-3 rounded transition-colors duration-150 cursor-pointer" id={`book-srv-${srv.slug}`}>

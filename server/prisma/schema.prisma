@@ -117,16 +117,18 @@ model CTASection {
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 model Service {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  description String
-  category    String
-  iconName    String   @default("Sparkles")
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  description     String
+  category        String
+  iconName        String   @default("Sparkles")
+  order           Int      @default(0)
+  isActive        Boolean  @default(true)
+  treatmentPoints String   @default("") @db.Text
+  clinicNote      String   @default("") @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ─── Programs ─────────────────────────────────────────────────────────────────

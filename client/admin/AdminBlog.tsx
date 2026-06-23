@@ -9,6 +9,7 @@ export default function AdminBlog() {
       displayField="title"
       secondaryField="category"
       newItemDefaults={{ slug: '', title: '', date: '', category: '', summary: '', content: '', readTime: '5 min read', published: true, order: 0 }}
+      reorderEndpoint="blog-posts/reorder"
       fields={[
         { key: 'title', label: 'Title' },
         { key: 'slug', label: 'URL Slug', placeholder: 'e.g. understanding-cbt' },
@@ -17,7 +18,6 @@ export default function AdminBlog() {
         { key: 'readTime', label: 'Read Time', placeholder: 'e.g. 5 min read' },
         { key: 'summary', label: 'Summary', type: 'textarea', rows: 2 },
         { key: 'content', label: 'Content (Markdown)', type: 'textarea', rows: 10 },
-        { key: 'order', label: 'Display Order', type: 'number' },
         { key: 'published', label: 'Published (visible on site)', type: 'checkbox' },
       ]}
     />

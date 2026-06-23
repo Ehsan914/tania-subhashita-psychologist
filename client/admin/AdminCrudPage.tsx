@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAdminData, adminApi } from '../hooks/useApi';
-import { Plus, Pencil, Trash2, Save, X, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Loader2, GripVertical } from 'lucide-react';
 import { DynamicServiceIcon } from '../components/DynamicServiceIcon';
 
 interface CrudItem {
@@ -22,9 +22,10 @@ interface AdminCrudPageProps {
   subtitle: string;
   endpoint: string;
   fields: FieldDef[];
-  displayField: string; // Which field to show as the item title in the list
-  secondaryField?: string; // Optional secondary info line
+  displayField: string;
+  secondaryField?: string;
   newItemDefaults: Record<string, any>;
+  reorderEndpoint?: string;
 }
 
 function FormField({ field, value, onChange }: { field: FieldDef; value: any; onChange: (v: any) => void }) {
@@ -89,14 +90,21 @@ function FormField({ field, value, onChange }: { field: FieldDef; value: any; on
   );
 }
 
-export default function AdminCrudPage({ title, subtitle, endpoint, fields, displayField, secondaryField, newItemDefaults }: AdminCrudPageProps) {
-  const { data: items, loading, refetch } = useAdminData<CrudItem[]>(endpoint, []);
+export default function AdminCrudPage({ title, subtitle, endpoint, fields, displayField, secondaryField, newItemDefaults, reorderEndpoint }: AdminCrudPageProps) {
+  const { data: fetchedItems, loading, refetch } = useAdminData<CrudItem[]>(endpoint, []);
+  const [localItems, setLocalItems] = useState<CrudItem[]>([]);
   const [editingItem, setEditingItem] = useState<CrudItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  const dragFromIdx = useRef<number | null>(null);
+
+  useEffect(() => { setLocalItems(fetchedItems); }, [fetchedItems]);
 
   const startCreate = () => {
-    setEditingItem({ id: '', ...newItemDefaults });
+    const defaults = { id: '', ...newItemDefaults };
+    if ('order' in defaults) defaults.order = 0;
+    setEditingItem(defaults);
     setIsCreating(true);
   };
 
@@ -141,6 +149,32 @@ export default function AdminCrudPage({ title, subtitle, endpoint, fields, displ
 
   const updateField = (key: string, value: any) => {
     setEditingItem((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  // ── Drag to reorder ──────────────────────────────────────────────────────────
+  const handleDragStart = (idx: number) => { dragFromIdx.current = idx; };
+  const handleDragEnter = (idx: number) => { setDragOverIdx(idx); };
+
+  const handleDragEnd = async () => {
+    const from = dragFromIdx.current;
+    const to = dragOverIdx;
+    dragFromIdx.current = null;
+    setDragOverIdx(null);
+    if (from === null || to === null || from === to) return;
+
+    const reordered = [...localItems];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    const withOrder = reordered.map((item, idx) => ({ ...item, order: idx }));
+    setLocalItems(withOrder);
+
+    if (reorderEndpoint) {
+      try {
+        await adminApi(reorderEndpoint, 'PUT', { items: withOrder.map(i => ({ id: i.id, order: i.order })) });
+      } catch {
+        setLocalItems(fetchedItems);
+      }
+    }
   };
 
   if (loading) {
@@ -198,13 +232,30 @@ export default function AdminCrudPage({ title, subtitle, endpoint, fields, displ
 
       {/* Items List */}
       <div className="space-y-2">
-        {items.length === 0 ? (
+        {localItems.length === 0 ? (
           <div className="bg-[#1a1a2e] rounded-2xl p-8 border border-white/5 text-center">
             <p className="text-gray-500 text-sm">No items yet. Click "Add New" to create one.</p>
           </div>
         ) : (
-          items.map((item) => (
-            <div key={item.id} className="bg-[#1a1a2e] rounded-xl p-4 border border-white/5 hover:border-white/10 transition-all flex items-center justify-between group">
+          localItems.map((item, idx) => (
+            <div
+              key={item.id}
+              draggable={!!reorderEndpoint}
+              onDragStart={() => handleDragStart(idx)}
+              onDragEnter={() => handleDragEnter(idx)}
+              onDragEnd={handleDragEnd}
+              onDragOver={e => e.preventDefault()}
+              className={`bg-[#1a1a2e] rounded-xl p-4 border transition-all flex items-center gap-3 group ${
+                dragOverIdx === idx
+                  ? 'border-indigo-500/50 bg-indigo-500/5'
+                  : 'border-white/5 hover:border-white/10'
+              }`}
+            >
+              {reorderEndpoint && (
+                <div className="text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing shrink-0 transition-colors">
+                  <GripVertical className="w-4 h-4" />
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-white truncate">{item[displayField]}</div>
                 {secondaryField && (

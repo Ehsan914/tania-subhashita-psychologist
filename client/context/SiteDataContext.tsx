@@ -50,6 +50,8 @@ export interface ServiceData {
   description: string;
   category: string;
   iconName: string;
+  treatmentPoints: string;
+  clinicNote: string;
 }
 
 export interface AssessmentQuestion {

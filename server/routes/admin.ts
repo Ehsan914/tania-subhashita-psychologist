@@ -160,6 +160,12 @@ router.post('/services', async (req: AuthenticatedRequest, res: Response) => {
   res.status(201).json(service);
 });
 
+router.put('/services/reorder', async (req: AuthenticatedRequest, res: Response) => {
+  const { items } = req.body as { items: { id: string; order: number }[] };
+  await Promise.all(items.map(({ id, order }) => prisma.service.update({ where: { id }, data: { order } })));
+  res.json({ success: true });
+});
+
 router.put('/services/:id', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   const data = req.body;
@@ -206,8 +212,15 @@ router.get('/blog-posts', async (_req: AuthenticatedRequest, res: Response) => {
 
 router.post('/blog-posts', async (req: AuthenticatedRequest, res: Response) => {
   const data = req.body;
-  const post = await prisma.blogPost.create({ data });
+  await prisma.blogPost.updateMany({ data: { order: { increment: 1 } } });
+  const post = await prisma.blogPost.create({ data: { ...data, order: 0 } });
   res.status(201).json(post);
+});
+
+router.put('/blog-posts/reorder', async (req: AuthenticatedRequest, res: Response) => {
+  const { items } = req.body as { items: { id: string; order: number }[] };
+  await Promise.all(items.map(({ id, order }) => prisma.blogPost.update({ where: { id }, data: { order } })));
+  res.json({ success: true });
 });
 
 router.put('/blog-posts/:id', async (req: AuthenticatedRequest, res: Response) => {

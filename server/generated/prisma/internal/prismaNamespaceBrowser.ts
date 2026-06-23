@@ -215,6 +215,8 @@ export const ServiceScalarFieldEnum = {
   iconName: 'iconName',
   order: 'order',
   isActive: 'isActive',
+  treatmentPoints: 'treatmentPoints',
+  clinicNote: 'clinicNote',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -43,6 +43,8 @@ export type ServiceMinAggregateOutputType = {
   iconName: string | null
   order: number | null
   isActive: boolean | null
+  treatmentPoints: string | null
+  clinicNote: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -56,6 +58,8 @@ export type ServiceMaxAggregateOutputType = {
   iconName: string | null
   order: number | null
   isActive: boolean | null
+  treatmentPoints: string | null
+  clinicNote: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -69,6 +73,8 @@ export type ServiceCountAggregateOutputType = {
   iconName: number
   order: number
   isActive: number
+  treatmentPoints: number
+  clinicNote: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -92,6 +98,8 @@ export type ServiceMinAggregateInputType = {
   iconName?: true
   order?: true
   isActive?: true
+  treatmentPoints?: true
+  clinicNote?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -105,6 +113,8 @@ export type ServiceMaxAggregateInputType = {
   iconName?: true
   order?: true
   isActive?: true
+  treatmentPoints?: true
+  clinicNote?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -118,6 +128,8 @@ export type ServiceCountAggregateInputType = {
   iconName?: true
   order?: true
   isActive?: true
+  treatmentPoints?: true
+  clinicNote?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -218,6 +230,8 @@ export type ServiceGroupByOutputType = {
   iconName: string
   order: number
   isActive: boolean
+  treatmentPoints: string
+  clinicNote: string
   createdAt: Date
   updatedAt: Date
   _count: ServiceCountAggregateOutputType | null
@@ -254,6 +268,8 @@ export type ServiceWhereInput = {
   iconName?: Prisma.StringFilter<"Service"> | string
   order?: Prisma.IntFilter<"Service"> | number
   isActive?: Prisma.BoolFilter<"Service"> | boolean
+  treatmentPoints?: Prisma.StringFilter<"Service"> | string
+  clinicNote?: Prisma.StringFilter<"Service"> | string
   createdAt?: Prisma.DateTimeFilter<"Service"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Service"> | Date | string
 }
@@ -267,6 +283,8 @@ export type ServiceOrderByWithRelationInput = {
   iconName?: Prisma.SortOrder
   order?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  treatmentPoints?: Prisma.SortOrder
+  clinicNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -283,6 +301,8 @@ export type ServiceWhereUniqueInput = Prisma.AtLeast<{
   iconName?: Prisma.StringFilter<"Service"> | string
   order?: Prisma.IntFilter<"Service"> | number
   isActive?: Prisma.BoolFilter<"Service"> | boolean
+  treatmentPoints?: Prisma.StringFilter<"Service"> | string
+  clinicNote?: Prisma.StringFilter<"Service"> | string
   createdAt?: Prisma.DateTimeFilter<"Service"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Service"> | Date | string
 }, "id" | "slug">
@@ -296,6 +316,8 @@ export type ServiceOrderByWithAggregationInput = {
   iconName?: Prisma.SortOrder
   order?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  treatmentPoints?: Prisma.SortOrder
+  clinicNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ServiceCountOrderByAggregateInput
@@ -317,6 +339,8 @@ export type ServiceScalarWhereWithAggregatesInput = {
   iconName?: Prisma.StringWithAggregatesFilter<"Service"> | string
   order?: Prisma.IntWithAggregatesFilter<"Service"> | number
   isActive?: Prisma.BoolWithAggregatesFilter<"Service"> | boolean
+  treatmentPoints?: Prisma.StringWithAggregatesFilter<"Service"> | string
+  clinicNote?: Prisma.StringWithAggregatesFilter<"Service"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Service"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Service"> | Date | string
 }
@@ -330,6 +354,8 @@ export type ServiceCreateInput = {
   iconName?: string
   order?: number
   isActive?: boolean
+  treatmentPoints?: string
+  clinicNote?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -343,6 +369,8 @@ export type ServiceUncheckedCreateInput = {
   iconName?: string
   order?: number
   isActive?: boolean
+  treatmentPoints?: string
+  clinicNote?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -356,6 +384,8 @@ export type ServiceUpdateInput = {
   iconName?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  treatmentPoints?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicNote?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -369,6 +399,8 @@ export type ServiceUncheckedUpdateInput = {
   iconName?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  treatmentPoints?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicNote?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -382,6 +414,8 @@ export type ServiceCreateManyInput = {
   iconName?: string
   order?: number
   isActive?: boolean
+  treatmentPoints?: string
+  clinicNote?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -395,6 +429,8 @@ export type ServiceUpdateManyMutationInput = {
   iconName?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  treatmentPoints?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicNote?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -408,6 +444,8 @@ export type ServiceUncheckedUpdateManyInput = {
   iconName?: Prisma.StringFieldUpdateOperationsInput | string
   order?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  treatmentPoints?: Prisma.StringFieldUpdateOperationsInput | string
+  clinicNote?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -421,6 +459,8 @@ export type ServiceCountOrderByAggregateInput = {
   iconName?: Prisma.SortOrder
   order?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  treatmentPoints?: Prisma.SortOrder
+  clinicNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -438,6 +478,8 @@ export type ServiceMaxOrderByAggregateInput = {
   iconName?: Prisma.SortOrder
   order?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  treatmentPoints?: Prisma.SortOrder
+  clinicNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -451,6 +493,8 @@ export type ServiceMinOrderByAggregateInput = {
   iconName?: Prisma.SortOrder
   order?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  treatmentPoints?: Prisma.SortOrder
+  clinicNote?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -470,6 +514,8 @@ export type ServiceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   iconName?: boolean
   order?: boolean
   isActive?: boolean
+  treatmentPoints?: boolean
+  clinicNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["service"]>
@@ -483,6 +529,8 @@ export type ServiceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   iconName?: boolean
   order?: boolean
   isActive?: boolean
+  treatmentPoints?: boolean
+  clinicNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["service"]>
@@ -496,6 +544,8 @@ export type ServiceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   iconName?: boolean
   order?: boolean
   isActive?: boolean
+  treatmentPoints?: boolean
+  clinicNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["service"]>
@@ -509,11 +559,13 @@ export type ServiceSelectScalar = {
   iconName?: boolean
   order?: boolean
   isActive?: boolean
+  treatmentPoints?: boolean
+  clinicNote?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ServiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "description" | "category" | "iconName" | "order" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["service"]>
+export type ServiceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "slug" | "name" | "description" | "category" | "iconName" | "order" | "isActive" | "treatmentPoints" | "clinicNote" | "createdAt" | "updatedAt", ExtArgs["result"]["service"]>
 
 export type $ServicePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Service"
@@ -527,6 +579,8 @@ export type $ServicePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     iconName: string
     order: number
     isActive: boolean
+    treatmentPoints: string
+    clinicNote: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["service"]>
@@ -960,6 +1014,8 @@ export interface ServiceFieldRefs {
   readonly iconName: Prisma.FieldRef<"Service", 'String'>
   readonly order: Prisma.FieldRef<"Service", 'Int'>
   readonly isActive: Prisma.FieldRef<"Service", 'Boolean'>
+  readonly treatmentPoints: Prisma.FieldRef<"Service", 'String'>
+  readonly clinicNote: Prisma.FieldRef<"Service", 'String'>
   readonly createdAt: Prisma.FieldRef<"Service", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Service", 'DateTime'>
 }
