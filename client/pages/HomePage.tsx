@@ -93,14 +93,14 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button 
                 onClick={() => navigate('/book')}
-                className="bg-[#1C4751] text-[#FAF4E2] hover:bg-[#FAF4E2] hover:text-[#1C4751] border-2 border-[#1C4751] text-xs font-bold uppercase tracking-widest py-4 px-8 rounded transition duration-300 transform hover:-translate-y-0.5 cursor-pointer shadow-md text-center"
+                className="bg-[#1C4751] text-[#FAF4E2] hover:bg-[#4F8E99] text-xs font-bold uppercase tracking-widest py-4 px-8 rounded transition duration-300 transform hover:-translate-y-0.5 cursor-pointer shadow-md text-center"
                 id="hero-book-consult"
               >
                 {hero?.ctaPrimaryText || 'Book 20-Min Free Consult'}
               </button>
               <button 
                 onClick={() => navigate('/services')}
-                className="text-[#1C4751] hover:bg-[#1C4751]/5 border-2 border-[#1C4751] text-xs font-bold uppercase tracking-widest py-4 px-8 rounded transition duration-200 text-center flex items-center justify-center gap-2 cursor-pointer"
+                className="text-[#1C4751] hover:bg-[#1C4751]/5 border border-[#1C4751] text-xs font-bold uppercase tracking-widest py-4 px-8 rounded transition duration-200 text-center flex items-center justify-center gap-2 cursor-pointer"
                 id="hero-view-healing"
               >
                 {hero?.ctaSecondaryText || 'Our services'} <ArrowRight className="w-4 h-4 text-[#4F8E99]" />
@@ -219,7 +219,7 @@ export default function HomePage() {
               <button onClick={() => navigate('/about')} className="bg-[#1C4751] text-[#FAF4E2] hover:bg-[#4F8E99] font-bold text-xs uppercase tracking-widest py-3.5 px-6 rounded transition duration-200 cursor-pointer" id="welcome-about-cta">
                 Read My Qualifications
               </button>
-              <button onClick={() => navigate('/services')} className="border border-[#1C4751] text-[#1C4751] hover:bg-[#1C4751] hover:text-[#FAF4E2] font-bold text-xs uppercase tracking-widest py-3.5 px-6 rounded transition duration-200 cursor-pointer" id="welcome-services-cta">
+              <button onClick={() => navigate('/services')} className="border border-[#1C4751] text-[#1C4751] hover:bg-[#1C4751]/5 font-bold text-xs uppercase tracking-widest py-3.5 px-6 rounded transition duration-200 cursor-pointer" id="welcome-services-cta">
                 Explore Care Services
               </button>
             </div>

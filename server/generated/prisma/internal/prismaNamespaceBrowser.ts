@@ -408,6 +408,7 @@ export const AppointmentScalarFieldEnum = {
   preferredTime: 'preferredTime',
   message: 'message',
   status: 'status',
+  psychologistComment: 'psychologistComment',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

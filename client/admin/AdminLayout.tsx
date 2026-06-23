@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Home, BarChart3, Briefcase, FolderOpen,
@@ -31,6 +31,9 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isFullWidth = pathname === '/admin';
+  const isWide = pathname === '/admin/appointments';
 
   const handleLogout = async () => {
     await logout();
@@ -147,7 +150,9 @@ export default function AdminLayout() {
 
         {/* Page Content */}
         <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <Outlet />
+          {isFullWidth
+            ? <Outlet />
+            : <div className={`${isWide ? 'max-w-7xl' : 'max-w-5xl'} mx-auto`}><Outlet /></div>}
         </main>
       </div>
     </div>

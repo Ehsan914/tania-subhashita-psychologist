@@ -36,6 +36,7 @@ export type AppointmentMinAggregateOutputType = {
   preferredTime: string | null
   message: string | null
   status: string | null
+  psychologistComment: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +53,7 @@ export type AppointmentMaxAggregateOutputType = {
   preferredTime: string | null
   message: string | null
   status: string | null
+  psychologistComment: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -68,6 +70,7 @@ export type AppointmentCountAggregateOutputType = {
   preferredTime: number
   message: number
   status: number
+  psychologistComment: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -86,6 +89,7 @@ export type AppointmentMinAggregateInputType = {
   preferredTime?: true
   message?: true
   status?: true
+  psychologistComment?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -102,6 +106,7 @@ export type AppointmentMaxAggregateInputType = {
   preferredTime?: true
   message?: true
   status?: true
+  psychologistComment?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -118,6 +123,7 @@ export type AppointmentCountAggregateInputType = {
   preferredTime?: true
   message?: true
   status?: true
+  psychologistComment?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -207,6 +213,7 @@ export type AppointmentGroupByOutputType = {
   preferredTime: string
   message: string
   status: string
+  psychologistComment: string
   createdAt: Date
   updatedAt: Date
   _count: AppointmentCountAggregateOutputType | null
@@ -244,6 +251,7 @@ export type AppointmentWhereInput = {
   preferredTime?: Prisma.StringFilter<"Appointment"> | string
   message?: Prisma.StringFilter<"Appointment"> | string
   status?: Prisma.StringFilter<"Appointment"> | string
+  psychologistComment?: Prisma.StringFilter<"Appointment"> | string
   createdAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
 }
@@ -260,6 +268,7 @@ export type AppointmentOrderByWithRelationInput = {
   preferredTime?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  psychologistComment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -279,6 +288,7 @@ export type AppointmentWhereUniqueInput = Prisma.AtLeast<{
   preferredTime?: Prisma.StringFilter<"Appointment"> | string
   message?: Prisma.StringFilter<"Appointment"> | string
   status?: Prisma.StringFilter<"Appointment"> | string
+  psychologistComment?: Prisma.StringFilter<"Appointment"> | string
   createdAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Appointment"> | Date | string
 }, "id">
@@ -295,6 +305,7 @@ export type AppointmentOrderByWithAggregationInput = {
   preferredTime?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  psychologistComment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AppointmentCountOrderByAggregateInput
@@ -317,6 +328,7 @@ export type AppointmentScalarWhereWithAggregatesInput = {
   preferredTime?: Prisma.StringWithAggregatesFilter<"Appointment"> | string
   message?: Prisma.StringWithAggregatesFilter<"Appointment"> | string
   status?: Prisma.StringWithAggregatesFilter<"Appointment"> | string
+  psychologistComment?: Prisma.StringWithAggregatesFilter<"Appointment"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Appointment"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Appointment"> | Date | string
 }
@@ -333,6 +345,7 @@ export type AppointmentCreateInput = {
   preferredTime: string
   message?: string
   status?: string
+  psychologistComment?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -349,6 +362,7 @@ export type AppointmentUncheckedCreateInput = {
   preferredTime: string
   message?: string
   status?: string
+  psychologistComment?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -365,6 +379,7 @@ export type AppointmentUpdateInput = {
   preferredTime?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  psychologistComment?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -381,6 +396,7 @@ export type AppointmentUncheckedUpdateInput = {
   preferredTime?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  psychologistComment?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -397,6 +413,7 @@ export type AppointmentCreateManyInput = {
   preferredTime: string
   message?: string
   status?: string
+  psychologistComment?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -413,6 +430,7 @@ export type AppointmentUpdateManyMutationInput = {
   preferredTime?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  psychologistComment?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -429,6 +447,7 @@ export type AppointmentUncheckedUpdateManyInput = {
   preferredTime?: Prisma.StringFieldUpdateOperationsInput | string
   message?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  psychologistComment?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -445,6 +464,7 @@ export type AppointmentCountOrderByAggregateInput = {
   preferredTime?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  psychologistComment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -461,6 +481,7 @@ export type AppointmentMaxOrderByAggregateInput = {
   preferredTime?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  psychologistComment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -477,6 +498,7 @@ export type AppointmentMinOrderByAggregateInput = {
   preferredTime?: Prisma.SortOrder
   message?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  psychologistComment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -495,6 +517,7 @@ export type AppointmentSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   preferredTime?: boolean
   message?: boolean
   status?: boolean
+  psychologistComment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appointment"]>
@@ -511,6 +534,7 @@ export type AppointmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   preferredTime?: boolean
   message?: boolean
   status?: boolean
+  psychologistComment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appointment"]>
@@ -527,6 +551,7 @@ export type AppointmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   preferredTime?: boolean
   message?: boolean
   status?: boolean
+  psychologistComment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appointment"]>
@@ -543,11 +568,12 @@ export type AppointmentSelectScalar = {
   preferredTime?: boolean
   message?: boolean
   status?: boolean
+  psychologistComment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientName" | "clientPhone" | "clientEmail" | "service" | "sessionType" | "format" | "preferredDate" | "preferredTime" | "message" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["appointment"]>
+export type AppointmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clientName" | "clientPhone" | "clientEmail" | "service" | "sessionType" | "format" | "preferredDate" | "preferredTime" | "message" | "status" | "psychologistComment" | "createdAt" | "updatedAt", ExtArgs["result"]["appointment"]>
 
 export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Appointment"
@@ -564,6 +590,7 @@ export type $AppointmentPayload<ExtArgs extends runtime.Types.Extensions.Interna
     preferredTime: string
     message: string
     status: string
+    psychologistComment: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["appointment"]>
@@ -1000,6 +1027,7 @@ export interface AppointmentFieldRefs {
   readonly preferredTime: Prisma.FieldRef<"Appointment", 'String'>
   readonly message: Prisma.FieldRef<"Appointment", 'String'>
   readonly status: Prisma.FieldRef<"Appointment", 'String'>
+  readonly psychologistComment: Prisma.FieldRef<"Appointment", 'String'>
   readonly createdAt: Prisma.FieldRef<"Appointment", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Appointment", 'DateTime'>
 }

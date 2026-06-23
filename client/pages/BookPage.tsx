@@ -194,25 +194,25 @@ export default function BookPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pb-6 border-b border-[#1C4751]/10">
               <div>
                 <label className="block text-[10px] font-bold tracking-widest text-[#1C4751] uppercase mb-1.5">
-                  Therapy Care Area ({services.length} Options)
+                  Therapies
                 </label>
                 <select
                   value={bookingService}
                   onChange={e => setBookingService(e.target.value)}
                   className="w-full bg-[#EFE5C8] border border-[#1C4751]/15 px-3 py-2.5 rounded text-xs focus:outline-none font-semibold text-[#1C4751]"
                 >
-                  {services.map(srv => (
+                  {[...services].sort((a, b) => a.name.localeCompare(b.name)).map(srv => (
                     <option key={srv.id} value={srv.slug}>{srv.name} ({srv.category})</option>
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="flex flex-col">
                 <label className="block text-[10px] font-bold tracking-widest text-[#1C4751] uppercase mb-1.5">Delivery Format</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setBookingFormat('in-person')} className={`text-xs py-2 px-3 rounded uppercase font-semibold transition cursor-pointer text-center ${bookingFormat === 'in-person' ? 'bg-[#1C4751] text-[#FAF4E2]' : 'bg-[#EFE5C8] text-[#5C6A6C]'}`}>
+                <div className="grid grid-cols-2 gap-2 flex-1">
+                  <button type="button" onClick={() => setBookingFormat('in-person')} className={`text-xs px-3 rounded uppercase font-semibold transition cursor-pointer text-center w-full h-full ${bookingFormat === 'in-person' ? 'bg-[#1C4751] text-[#FAF4E2]' : 'bg-[#EFE5C8] text-[#5C6A6C]'}`}>
                     Chamber In-Person
                   </button>
-                  <button type="button" onClick={() => setBookingFormat('online')} className={`text-xs py-2 px-3 rounded uppercase font-semibold transition cursor-pointer text-center ${bookingFormat === 'online' ? 'bg-[#1C4751] text-[#FAF4E2]' : 'bg-[#EFE5C8] text-[#5C6A6C]'}`}>
+                  <button type="button" onClick={() => setBookingFormat('online')} className={`text-xs px-3 rounded uppercase font-semibold transition cursor-pointer text-center w-full h-full ${bookingFormat === 'online' ? 'bg-[#1C4751] text-[#FAF4E2]' : 'bg-[#EFE5C8] text-[#5C6A6C]'}`}>
                     Encrypted Zoom
                   </button>
                 </div>

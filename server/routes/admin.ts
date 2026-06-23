@@ -485,6 +485,13 @@ router.put('/appointments/:id/status', async (req: AuthenticatedRequest, res: Re
   res.json(appointment);
 });
 
+router.put('/appointments/:id/comment', async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { psychologistComment } = req.body;
+  const appointment = await prisma.appointment.update({ where: { id }, data: { psychologistComment } });
+  res.json(appointment);
+});
+
 router.delete('/appointments/:id', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   await prisma.appointment.delete({ where: { id } });

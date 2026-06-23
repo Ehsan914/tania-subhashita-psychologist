@@ -305,6 +305,7 @@ model Appointment {
   preferredTime String
   message       String   @default("") @db.Text
   status        String   @default("pending")
+  psychologistComment  String   @default("") @db.Text
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

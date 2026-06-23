@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { adminApi } from '../hooks/useApi';
-import { Search, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { Search, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Loader2, X, MessageSquare } from 'lucide-react';
 
 interface Appointment {
   id: string;
@@ -14,6 +14,7 @@ interface Appointment {
   preferredTime: string;
   message: string;
   status: string;
+  psychologistComment: string;
   createdAt: string;
 }
 
@@ -39,6 +40,9 @@ export default function AdminAppointments() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
+  const [comment, setComment] = useState('');
+  const [savingComment, setSavingComment] = useState(false);
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
@@ -93,6 +97,23 @@ export default function AdminAppointments() {
       setAppointments(prev => prev.filter(a => a.id !== id));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const openModal = (appt: Appointment) => {
+    setSelectedAppt(appt);
+    setComment(appt.psychologistComment ?? '');
+  };
+
+  const handleSaveComment = async () => {
+    if (!selectedAppt) return;
+    setSavingComment(true);
+    try {
+      await adminApi(`appointments/${selectedAppt.id}/comment`, 'PUT', { psychologistComment: comment });
+      setAppointments(prev => prev.map(a => a.id === selectedAppt.id ? { ...a, psychologistComment: comment } : a));
+      setSelectedAppt(prev => prev ? { ...prev, psychologistComment: comment } : prev);
+    } finally {
+      setSavingComment(false);
     }
   };
 
@@ -167,7 +188,7 @@ export default function AdminAppointments() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {sorted.map(appt => (
-                  <tr key={appt.id} className="hover:bg-white/2 transition-colors group">
+                  <tr key={appt.id} onClick={() => openModal(appt)} className="hover:bg-white/2 transition-colors group cursor-pointer">
                     <td className="px-4 py-3">
                       <div className="font-medium text-white">{appt.clientName}</div>
                       {appt.clientEmail && (
@@ -192,6 +213,7 @@ export default function AdminAppointments() {
                         <select
                           value={appt.status}
                           onChange={e => handleStatusChange(appt.id, e.target.value)}
+                          onClick={e => e.stopPropagation()}
                           className={`text-[10px] font-bold px-2 py-1 rounded border bg-transparent cursor-pointer focus:outline-none ${STATUS_COLORS[appt.status] ?? 'bg-white/5 text-gray-400 border-white/10'}`}
                         >
                           <option value="pending">Pending</option>
@@ -205,7 +227,7 @@ export default function AdminAppointments() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => handleDelete(appt.id)}
+                        onClick={e => { e.stopPropagation(); handleDelete(appt.id); }}
                         disabled={deletingId === appt.id}
                         className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 transition-all cursor-pointer disabled:opacity-50"
                         title="Delete appointment"
@@ -235,6 +257,81 @@ export default function AdminAppointments() {
             ))}
           </div>
         </details>
+      )}
+
+      {/* ── Appointment Detail Modal ── */}
+      {selectedAppt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAppt(null)}>
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/8 shrink-0">
+              <div>
+                <h2 className="font-semibold text-white">{selectedAppt.clientName}</h2>
+                <p className="text-xs text-gray-500 mt-0.5 font-mono">{selectedAppt.id.slice(0, 12)}…</p>
+              </div>
+              <button onClick={() => setSelectedAppt(null)} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Info card */}
+            <div className="p-6 overflow-y-auto space-y-5 flex-1">
+              <div className="bg-[#12121f] rounded-xl border border-white/5 divide-y divide-white/5 text-sm">
+                {[
+                  { label: 'Phone', value: selectedAppt.clientPhone },
+                  { label: 'Email', value: selectedAppt.clientEmail || '—' },
+                  { label: 'Service', value: selectedAppt.service || '—' },
+                  { label: 'Session', value: selectedAppt.sessionType || '—' },
+                  { label: 'Format', value: selectedAppt.format || '—' },
+                  { label: 'Date', value: selectedAppt.preferredDate },
+                  { label: 'Time', value: selectedAppt.preferredTime },
+                  { label: 'Status', value: selectedAppt.status },
+                  { label: 'Submitted', value: new Date(selectedAppt.createdAt).toLocaleString() },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-start gap-4 px-4 py-2.5">
+                    <span className="text-gray-500 text-xs w-20 shrink-0 pt-0.5">{label}</span>
+                    <span className="text-white text-xs capitalize">{value}</span>
+                  </div>
+                ))}
+                {selectedAppt.message && (
+                  <div className="px-4 py-2.5">
+                    <span className="text-gray-500 text-xs block mb-1">Client Message</span>
+                    <p className="text-gray-300 text-xs leading-relaxed">{selectedAppt.message}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Psychologist comment */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  <MessageSquare className="w-3.5 h-3.5" /> Psychologist Comment
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  rows={4}
+                  placeholder="Add your notes or comments about this appointment…"
+                  className="w-full bg-[#12121f] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 transition-all resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-white/8 flex justify-end gap-3 shrink-0">
+              <button onClick={() => setSelectedAppt(null)} className="px-4 py-2 rounded-xl text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                Close
+              </button>
+              <button
+                onClick={handleSaveComment}
+                disabled={savingComment}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 transition-colors disabled:opacity-50"
+              >
+                {savingComment && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                Save Comment
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
