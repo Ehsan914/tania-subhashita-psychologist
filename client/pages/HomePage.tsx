@@ -126,7 +126,7 @@ export default function HomePage() {
                   <circle cx="70" cy="118" r="4"/><circle cx="135" cy="74" r="4"/><circle cx="62" cy="58" r="4"/>
                 </g>
               </svg>
-              <div className="relative w-[62%] max-w-82.5 aspect-4/5 ml-[-6%] bg-gradient-to-br from-[#cdd2b0] via-[#9fb0a6] to-[#7c93a0] rounded-[2px] shadow-[0_24px_50px_rgba(28,71,81,0.22)] -rotate-[1.5deg] overflow-hidden flex items-center justify-center z-10">
+              <div className="relative w-[62%] max-w-82.5 aspect-4/5 ml-[-6%] bg-linear-to-br from-[#cdd2b0] via-[#9fb0a6] to-[#7c93a0] rounded-xs shadow-[0_24px_50px_rgba(28,71,81,0.22)] rotate-[-1.5deg] overflow-hidden flex items-center justify-center z-10">
                 {hero?.portraitImageUrl ? (
                   <img
                     src={hero.portraitImageUrl}
@@ -137,9 +137,9 @@ export default function HomePage() {
                 ) : (
                   <span className="font-sans-mulish text-[0.6rem] tracking-[0.34em] text-white/70 absolute inset-0 flex items-center justify-center select-none pointer-events-none">PORTRAIT</span>
                 )}
-                <span className="absolute -top-[13px] left-1/2 -translate-x-1/2 -rotate-[3deg] w-[88px] h-[26px] bg-[#E4B24C]/60 shadow-[0_2px_6px_rgba(0,0,0,0.08)] z-10"></span>
+                <span className="absolute -top-3.25 left-1/2 -translate-x-1/2 -rotate-3 w-22 h-6.5 bg-[#E4B24C]/60 shadow-[0_2px_6px_rgba(0,0,0,0.08)] z-10"></span>
               </div>
-              <div className="absolute right-[7%] bottom-[7%] max-w-[330px] w-48 text-[#FBF6E6] z-20 font-serif-cormorant text-2xl drop-shadow-[0_2px_14px_rgba(28,71,81,0.45)] text-shadow-lg/30 leading-snug">
+              <div className="absolute right-[7%] bottom-[7%] max-w-82.5 w-48 text-[#FBF6E6] z-20 font-serif-cormorant text-2xl drop-shadow-[0_2px_14px_rgba(28,71,81,0.45)] text-shadow-lg/30 leading-snug">
                 {hero?.portraitQuote || '\u201cHelping you heal, grow, and thrive — every day.\u201d'}
                 <span className="block mt-3.5 font-sans-mulish text-[0.62rem] tracking-[0.28em] opacity-85 uppercase">
                   {hero?.portraitAttribution || '— Tania Subhashita'}
@@ -165,14 +165,14 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {statistics.map((stat, i) => (
               <Reveal delay={i * 100} key={stat.id}>
-                <div className="bg-[#1C4751]/20 border border-[#FAF4E2]/12 p-6 rounded-[8px] text-center hover:bg-[#1C4751]/30 transition duration-300 h-full">
+                <div className="bg-[#1C4751]/20 border border-[#FAF4E2]/12 p-6 rounded-lg text-center hover:bg-[#1C4751]/30 transition duration-300 h-full">
                   <div className="font-serif-cormorant text-4xl sm:text-5xl lg:text-6xl text-[#E4B24C] font-semibold block mb-2">
                     <AnimatedCounter value={stat.value} />
                   </div>
                   <div className="text-xs font-bold tracking-widest uppercase text-[#FAF4E2] mb-3 leading-snug">
                     {stat.label}
                   </div>
-                  <p className="text-xs text-[#FAF4E2]/80 leading-relaxed max-w-[200px] mx-auto">
+                  <p className="text-xs text-[#FAF4E2]/80 leading-relaxed max-w-50 mx-auto">
                     {stat.detail}
                   </p>
                 </div>
@@ -187,7 +187,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
           <Reveal delay={100} className="md:col-span-5 relative">
             <div className="bg-[#EFE5C8] border border-[#1C4751]/13 rounded-lg p-6 max-w-xs mx-auto">
-              <div className="bg-[#FAF4E2] border border-[#1C4751]/10 rounded aspect-[3/4] flex flex-col justify-between p-6 shadow-md relative overflow-hidden transform rotate-2">
+              <div className="bg-[#FAF4E2] border border-[#1C4751]/10 rounded aspect-3/4 flex flex-col justify-between p-6 shadow-md relative overflow-hidden transform rotate-2">
                 {welcome?.portraitImageUrl && (
                   <img
                     src={welcome.portraitImageUrl}
@@ -365,7 +365,7 @@ export default function HomePage() {
       )}
 
       {/* CTA */}
-      <section className="bg-gradient-to-br from-[#1C4751] to-[#2A3A3E] text-[#FAF4E2] py-24 px-4 text-center relative overflow-hidden">
+      <section className="bg-linear-to-br from-[#1C4751] to-[#2A3A3E] text-[#FAF4E2] py-24 px-4 text-center relative overflow-hidden">
         <div className="max-w-2xl mx-auto space-y-6 relative z-10">
           <h2 className="font-serif-cormorant text-3xl sm:text-4xl lg:text-5xl font-light text-[#FAF4E2] leading-tight">
             {cta?.heading || ''}
