@@ -1,21 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// In dev: empty string → Vite proxy handles /api/* and /auth/*
-// In production: set VITE_API_URL to your Railway server URL (e.g. https://mindcare-server.up.railway.app)
 export const API = import.meta.env.VITE_API_URL ?? '';
 
 const TOKEN_KEY = 'mindcare_admin_token';
 
+export function getStoredToken(): string | null {
+  try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
+}
+
+export function storeToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = getStoredToken();
   const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   return headers;
 }
 
-// Generic hook to fetch data from the public API
+// Calls /auth/refresh (sends httpOnly cookie automatically) to get a new access token
+export async function refreshAccessToken(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API}/auth/refresh`, { method: 'POST', credentials: 'include' });
+    if (!res.ok) { clearToken(); return null; }
+    const data = await res.json();
+    storeToken(data.token);
+    return data.token;
+  } catch {
+    clearToken();
+    return null;
+  }
+}
+
 export function useApiData<T>(endpoint: string, defaultValue: T): {
   data: T;
   loading: boolean;
@@ -42,14 +63,11 @@ export function useApiData<T>(endpoint: string, defaultValue: T): {
     }
   }, [endpoint]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
 }
 
-// Hook to fetch data from the admin API (with JWT auth)
 export function useAdminData<T>(endpoint: string, defaultValue: T): {
   data: T;
   loading: boolean;
@@ -64,13 +82,15 @@ export function useAdminData<T>(endpoint: string, defaultValue: T): {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/api/admin/${endpoint}`, {
-        headers: getAuthHeaders(),
-      });
-      if (!res.ok) {
-        if (res.status === 401) throw new Error('Unauthorized');
-        throw new Error(`HTTP ${res.status}`);
+      let res = await fetch(`${API}/api/admin/${endpoint}`, { headers: getAuthHeaders() });
+
+      if (res.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (!newToken) throw new Error('Unauthorized');
+        res = await fetch(`${API}/api/admin/${endpoint}`, { headers: getAuthHeaders() });
       }
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json ?? defaultValue);
     } catch (err: any) {
@@ -81,25 +101,33 @@ export function useAdminData<T>(endpoint: string, defaultValue: T): {
     }
   }, [endpoint]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
 }
 
-// Helper for admin CRUD mutations (with JWT auth)
 export async function adminApi<T = any>(
   endpoint: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'POST',
   body?: any
 ): Promise<T> {
-  const headers = getAuthHeaders();
-  const options: RequestInit = { method, headers };
-  if (body && method !== 'GET' && method !== 'DELETE') {
-    options.body = JSON.stringify(body);
+  const makeRequest = (token?: string | null) => {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    const t = token ?? getStoredToken();
+    if (t) headers['Authorization'] = `Bearer ${t}`;
+    const options: RequestInit = { method, headers };
+    if (body && method !== 'GET' && method !== 'DELETE') options.body = JSON.stringify(body);
+    return fetch(`${API}/api/admin/${endpoint}`, options);
+  };
+
+  let res = await makeRequest();
+
+  if (res.status === 401) {
+    const newToken = await refreshAccessToken();
+    if (!newToken) throw new Error('Session expired. Please log in again.');
+    res = await makeRequest(newToken);
   }
-  const res = await fetch(`${API}/api/admin/${endpoint}`, options);
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Request failed' }));
     throw new Error(err.error || `HTTP ${res.status}`);

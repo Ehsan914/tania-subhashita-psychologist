@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type AdminUser = Prisma.AdminUserModel
 /**
+ * Model AdminSession
+ * 
+ */
+export type AdminSession = Prisma.AdminSessionModel
+/**
  * Model SiteSettings
  * 
  */

@@ -8,6 +8,7 @@ export interface AuthenticatedRequest extends Request {
     userId: string;
     email: string;
     name: string;
+    isSuperAdmin: boolean;
   };
 }
 
@@ -25,6 +26,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
       userId: string;
       email: string;
       name: string;
+      isSuperAdmin: boolean;
     };
 
     req.user = decoded;
@@ -32,4 +34,11 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token. Please log in again.' });
   }
+}
+
+export function requireSuperAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.user?.isSuperAdmin) {
+    return res.status(403).json({ error: 'Super admin access required.' });
+  }
+  next();
 }

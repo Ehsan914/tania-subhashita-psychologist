@@ -24,9 +24,11 @@ async function main() {
       email: 'admin@mindcare.com',
       passwordHash,
       name: 'Admin',
+      role: 'Super Admin',
+      isSuperAdmin: true,
     },
   });
-  console.log(`✅ Admin user created (email: admin@mindcare.com, password: ${defaultPassword})`);
+  console.log(`✅ Super admin created (email: admin@mindcare.com, password: ${defaultPassword})`);
 
   // ─── Site Settings ───────────────────────────────────────────────────────────
   await prisma.siteSettings.upsert({
