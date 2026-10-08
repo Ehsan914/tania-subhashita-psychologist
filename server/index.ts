@@ -116,7 +116,7 @@ app.listen(PORT, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV ?? 'development'} mode`);
   console.log(`   Health:  http://localhost:${PORT}/health`);
   console.log(`   API:     http://localhost:${PORT}/api/*`);
-  console.log(`   Auth:    http://localhost:${PORT}/auth/*`);
+  console.log(`   Auth:    http://localhost:${PORT}/api/auth/*`);
   if (!IS_PROD) {
     console.log(`   Client:  http://localhost:${PORT}/`);
   }
