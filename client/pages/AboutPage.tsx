@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 import { useSiteData } from '../context/SiteDataContext';
+import { sanitizeHtml } from '../lib/sanitizeHtml';
 
 export default function AboutPage() {
   const { about, credentials, methodologySteps } = useSiteData();
@@ -52,8 +53,8 @@ export default function AboutPage() {
         <Reveal delay={300} className="md:col-span-7 space-y-6">
           <span className="text-[10px] tracking-[0.28em] font-bold text-[#6E7C4E] uppercase block">{about?.tagline || 'Professional Bio'}</span>
           <h1 className="font-serif-cormorant text-4xl sm:text-5xl text-[#1C4751] font-light leading-tight">{about?.heading || 'Meet Tania Subhashita'}</h1>
-          <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: about?.paragraph1 || '' }} />
-          <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: about?.paragraph2 || '' }} />
+          <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(about?.paragraph1 || '') }} />
+          <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(about?.paragraph2 || '') }} />
           {about?.highlightQuote && (
             <p className="text-sm text-[#2A3A3E] leading-relaxed italic border-l-4 border-[#E4B24C] pl-4 bg-[#EFE5C8]/40 py-2 rounded-r">
               &ldquo;{about.highlightQuote}&rdquo;

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Calendar, CalendarDays, ChevronRight } from 'lucide-react';
 import { useSiteData } from '../context/SiteDataContext';
+import { sanitizeHtml } from '../lib/sanitizeHtml';
 import { Reveal } from '../components/Reveal';
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { DynamicServiceIcon } from '../components/DynamicServiceIcon';
@@ -203,7 +204,7 @@ export default function HomePage() {
                 <div className="relative z-10">
                   <span className={`text-[10px] tracking-widest uppercase block mb-1 ${welcome?.portraitImageUrl ? 'text-[#FAF4E2]/70' : 'text-[#5C6A6C]'}`}>Clinic Credentials</span>
                   <p className={`font-serif-cormorant text-xl font-semibold ${welcome?.portraitImageUrl ? 'text-[#FAF4E2]' : 'text-[#1C4751]'}`}>{welcome?.credentialName || 'Tania Subhashita'}</p>
-                  <p className={`text-[11px] mt-1 font-medium leading-relaxed ${welcome?.portraitImageUrl ? 'text-[#EFE5C8]/80' : 'text-[#2A3A3E]'}`} dangerouslySetInnerHTML={{ __html: welcome?.credentialTitle || '' }} />
+                  <p className={`text-[11px] mt-1 font-medium leading-relaxed ${welcome?.portraitImageUrl ? 'text-[#EFE5C8]/80' : 'text-[#2A3A3E]'}`} dangerouslySetInnerHTML={{ __html: sanitizeHtml(welcome?.credentialTitle || '') }} />
                 </div>
               </div>
             </div>
@@ -213,8 +214,8 @@ export default function HomePage() {
             <h2 className="font-serif-cormorant text-3xl sm:text-4xl text-[#1C4751] font-light leading-tight">
               {welcome?.heading || ''}
             </h2>
-            <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: welcome?.paragraph1 || '' }} />
-            <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: welcome?.paragraph2 || '' }} />
+            <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(welcome?.paragraph1 || '') }} />
+            <p className="text-sm text-[#5C6A6C] leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(welcome?.paragraph2 || '') }} />
             <div className="pt-4 flex flex-wrap gap-4">
               <button onClick={() => navigate('/about')} className="bg-[#1C4751] text-[#FAF4E2] hover:bg-[#4F8E99] font-bold text-xs uppercase tracking-widest py-3.5 px-6 rounded transition duration-200 cursor-pointer" id="welcome-about-cta">
                 Read My Qualifications
