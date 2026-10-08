@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import authRoutes from './routes/auth.js';
+import { toNodeHandler } from 'better-auth/node';
+import { auth, CLIENT_IP_HEADER } from './lib/auth.js';
 import apiRoutes from './routes/api.js';
 import adminRoutes from './routes/admin.js';
 
@@ -15,7 +15,7 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 
 // ─── Startup Checks ────────────────────────────────────────────────────────────
 if (IS_PROD && !process.env.APP_URL) {
-  console.warn('⚠️  APP_URL is not set — CORS will block your Vercel frontend!');
+  console.warn('⚠️  APP_URL is not set — admin sign-in will reject the site origin!');
 }
 
 // ─── Allowed Origins ───────────────────────────────────────────────────────────
@@ -35,19 +35,28 @@ app.use(cors({
       cb(null, true);
     } else {
       console.warn(`CORS blocked: ${origin}`);
-      cb(new Error(`CORS: ${origin} not allowed`));
+      cb(Object.assign(new Error(`CORS: ${origin} not allowed`), { status: 403 }));
     }
   },
   credentials: true,
 }));
 
-// Railway's edge proxy sits in front of the app; trust its X-Forwarded-For so
-// rate limits key on the client IP rather than the proxy's.
-if (IS_PROD) app.set('trust proxy', 1);
+// In production requests arrive client → Vercel (rewrite) → Railway edge → app,
+// so the client IP is two hops back in X-Forwarded-For.
+const TRUST_PROXY_HOPS = Number(process.env.TRUST_PROXY_HOPS ?? 2);
+if (IS_PROD) app.set('trust proxy', TRUST_PROXY_HOPS);
+
+// Hand Better Auth the IP Express resolved, overwriting anything the client sent.
+app.use((req, _res, next) => {
+  req.headers[CLIENT_IP_HEADER] = req.ip;
+  next();
+});
+
+// Better Auth reads its own request bodies, so it is mounted before the parsers.
+app.all('/api/auth/{*splat}', toNodeHandler(auth));
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 // Express 5 leaves req.body undefined when a request has no body; handlers
 // destructure it, so give them an empty object instead.
 app.use((req, _res, next) => {
@@ -73,7 +82,6 @@ app.get('/health', (_req, res) => {
 });
 
 // ─── Routes ────────────────────────────────────────────────────────────────────
-app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/admin', adminRoutes);
 

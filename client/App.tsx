@@ -27,7 +27,7 @@ import AdminGallery from './admin/AdminGallery';
 import AdminAbout from './admin/AdminAbout';
 import AdminContact from './admin/AdminContact';
 import AdminSettings from './admin/AdminSettings';
-import AdminUsers from './admin/AdminUsers';
+import AdminAccount from './admin/AdminAccount';
 import AdminAssessment from './admin/AdminAssessment';
 import AdminAppointments from './admin/AdminAppointments';
 import AdminBookingSettings from './admin/AdminBookingSettings';
@@ -92,7 +92,7 @@ export default function App() {
           <Route path="appointments" element={<AdminAppointments />} />
           <Route path="booking-settings" element={<AdminBookingSettings />} />
           <Route path="settings" element={<AdminSettings />} />
-          <Route path="users" element={<AdminUsers />} />
+          <Route path="account" element={<AdminAccount />} />
         </Route>
       </Routes>
       </>

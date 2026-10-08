@@ -7,28 +7,71 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Admin Users ──────────────────────────────────────────────────────────────
+// ─── Admin account (Better Auth) ─────────────────────────────────────────────
+// One admin, created by the seed. Tables follow Better Auth's schema
+// (generated with `npx auth generate`).
 
-model AdminUser {
-  id           String         @id @default(cuid())
-  email        String         @unique
-  passwordHash String
-  name         String?
-  avatarUrl    String?
-  role         String?
-  isSuperAdmin Boolean        @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  sessions     AdminSession[]
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
 }
 
-model AdminSession {
-  id           String    @id @default(cuid())
-  adminUserId  String
-  refreshToken String    @unique
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
-  adminUser    AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }
 
 // ─── Site-wide Settings ───────────────────────────────────────────────────────

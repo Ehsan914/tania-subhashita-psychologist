@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Home, BarChart3, Briefcase, FolderOpen,
   FileText, MessageSquareQuote, HelpCircle, Image, User, Settings,
-  Menu, X, LogOut, ChevronRight, BookOpen, ClipboardList, Shield,
+  Menu, X, LogOut, ChevronRight, BookOpen, ClipboardList, UserCog,
   CalendarCheck, MessageCircle
 } from 'lucide-react';
 
@@ -24,7 +24,7 @@ const navItems = [
   { path: '/admin/appointments', icon: CalendarCheck, label: 'Appointments' },
   { path: '/admin/booking-settings', icon: MessageCircle, label: 'Booking Settings' },
   { path: '/admin/settings', icon: Settings, label: 'Site Settings' },
-  { path: '/admin/users', icon: Shield, label: 'Admin Users' },
+  { path: '/admin/account', icon: UserCog, label: 'Account' },
 ];
 
 export default function AdminLayout() {

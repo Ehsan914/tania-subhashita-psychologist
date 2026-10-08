@@ -1,13 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { API, getStoredToken, storeToken, clearToken, refreshAccessToken } from '../hooks/useApi';
+import React, { createContext, useContext } from 'react';
+import { authClient } from '../lib/authClient';
 
 interface User {
   id: string;
   email: string;
   name: string;
   avatarUrl: string;
-  role: string;
-  isSuperAdmin: boolean;
 }
 
 interface AuthContextType {
@@ -16,7 +14,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -26,88 +23,22 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   login: async () => ({ success: false }),
   logout: async () => {},
-  checkAuth: async () => {},
   refreshUser: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // The session lives in an httpOnly cookie; Better Auth keeps this in sync
+  // after sign-in, sign-out and account changes.
+  const { data, isPending, refetch } = authClient.useSession();
 
-  const checkAuth = useCallback(async () => {
-    const token = getStoredToken();
+  const user: User | null = data?.user
+    ? { id: data.user.id, email: data.user.email, name: data.user.name, avatarUrl: data.user.image ?? '' }
+    : null;
 
-    // Try stored access token first
-    if (token) {
-      try {
-        const res = await fetch(`${API}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (data.authenticated) {
-          setUser(data.user);
-          setLoading(false);
-          return;
-        }
-      } catch {
-        // fall through to refresh
-      }
-    }
-
-    // Access token missing/expired — try refresh cookie
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      try {
-        const res = await fetch(`${API}/auth/me`, {
-          headers: { Authorization: `Bearer ${newToken}` },
-        });
-        const data = await res.json();
-        if (data.authenticated) {
-          setUser(data.user);
-          setLoading(false);
-          return;
-        }
-      } catch {
-        // fall through
-      }
-    }
-
-    clearToken();
-    setUser(null);
-    setLoading(false);
-  }, []);
-
-  // Reload current user from server (after profile update)
-  const refreshUser = useCallback(async () => {
-    const token = getStoredToken();
-    if (!token) return;
+  const login = async (email: string, password: string) => {
     try {
-      const res = await fetch(`${API}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.authenticated) setUser(data.user);
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  useEffect(() => { checkAuth(); }, [checkAuth]);
-
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // send/receive cookies
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) return { success: false, error: data.error || 'Login failed' };
-
-      storeToken(data.token);
-      setUser(data.user);
+      const { error } = await authClient.signIn.email({ email, password });
+      if (error) return { success: false, error: error.message || 'Login failed' };
       return { success: true };
     } catch {
       return { success: false, error: 'Network error. Please try again.' };
@@ -116,20 +47,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch(`${API}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include', // send cookie so server can delete the session
-      });
+      await authClient.signOut();
     } catch {
       // ignore
     }
-    clearToken();
-    setUser(null);
     window.location.href = '/admin/login';
   };
 
+  const refreshUser = async () => {
+    await refetch();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, logout, checkAuth, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading: isPending, isAuthenticated: !!user, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

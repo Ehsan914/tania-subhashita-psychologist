@@ -10,7 +10,9 @@
     "allowJs": true,
     "jsx": "react-jsx",
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "strict": true,
+    "types": ["vite/client", "node"]
   },
   "include": ["."]
 }

@@ -1,16 +1,8 @@
 import { Router, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import { prisma } from '../lib/prisma.js';
-import { requireAuth, requireSuperAdmin, AuthenticatedRequest } from '../middleware/auth.js';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 const router = Router();
-
-function generatePassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
-  const bytes = crypto.randomBytes(8);
-  return Array.from(bytes).map(b => chars[b % chars.length]).join('');
-}
 
 // All admin routes require authentication
 router.use(requireAuth);
@@ -508,114 +500,6 @@ router.put('/appointments/:id/comment', async (req: AuthenticatedRequest, res: R
 router.delete('/appointments/:id', async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   await prisma.appointment.delete({ where: { id } });
-  res.json({ success: true });
-});
-
-// ─── Admin Users ──────────────────────────────────────────────────────────────
-
-router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
-  const { userId, isSuperAdmin } = req.user!;
-  const users = await prisma.adminUser.findMany({
-    where: isSuperAdmin ? undefined : { id: userId },
-    orderBy: { createdAt: 'asc' },
-    select: { id: true, email: true, name: true, avatarUrl: true, role: true, isSuperAdmin: true, createdAt: true },
-  });
-  res.json(users);
-});
-
-router.post('/users', requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  const { email, name, role, isSuperAdmin } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required' });
-
-  const existing = await prisma.adminUser.findUnique({ where: { email } });
-  if (existing) return res.status(409).json({ error: 'A user with that email already exists' });
-
-  const generatedPassword = generatePassword();
-  const passwordHash = await bcrypt.hash(generatedPassword, 12);
-  const defaultName = name?.trim() || email.split('@')[0];
-
-  const user = await prisma.adminUser.create({
-    data: { email, name: defaultName, passwordHash, role: role?.trim() || 'User', isSuperAdmin: !!isSuperAdmin },
-    select: { id: true, email: true, name: true, avatarUrl: true, role: true, isSuperAdmin: true, createdAt: true },
-  });
-  res.status(201).json({ ...user, generatedPassword });
-});
-
-router.put('/users/:id', async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params;
-  const currentUserId = req.user!.userId;
-  const isSuperAdmin = req.user!.isSuperAdmin;
-
-  // Any admin can edit their own profile; only super admin can edit others
-  if (id !== currentUserId && !isSuperAdmin) {
-    return res.status(403).json({ error: 'You can only edit your own profile.' });
-  }
-
-  const { name, avatarUrl, role, email } = req.body;
-  const data: Record<string, unknown> = {};
-  if (name !== undefined) data.name = name;
-  if (avatarUrl !== undefined) data.avatarUrl = avatarUrl;
-  if (role !== undefined) data.role = role;
-
-  if (email !== undefined && isSuperAdmin) {
-    const duplicate = await prisma.adminUser.findFirst({ where: { email, NOT: { id } } });
-    if (duplicate) return res.status(409).json({ error: 'That email is already in use.' });
-    data.email = email;
-  }
-
-  const user = await prisma.adminUser.update({
-    where: { id },
-    data,
-    select: { id: true, email: true, name: true, avatarUrl: true, role: true, isSuperAdmin: true, createdAt: true },
-  });
-  res.json(user);
-});
-
-router.post('/users/:id/change-password', requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params;
-  const currentUserId = req.user!.userId;
-
-  const { currentPassword, newPassword } = req.body;
-  if (!newPassword || newPassword.length < 8) {
-    return res.status(400).json({ error: 'New password must be at least 8 characters.' });
-  }
-
-  const target = await prisma.adminUser.findUnique({ where: { id } });
-  if (!target) return res.status(404).json({ error: 'User not found' });
-
-  // Super admin changing their own password must verify current password
-  if (id === currentUserId) {
-    if (!currentPassword) return res.status(400).json({ error: 'Current password is required.' });
-    const valid = await bcrypt.compare(currentPassword, target.passwordHash);
-    if (!valid) return res.status(401).json({ error: 'Current password is incorrect.' });
-  }
-
-  const passwordHash = await bcrypt.hash(newPassword, 12);
-  await prisma.adminUser.update({ where: { id }, data: { passwordHash } });
-  await prisma.adminSession.deleteMany({ where: { adminUserId: id } });
-
-  res.json({ success: true });
-});
-
-router.post('/users/:id/regenerate-password', requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params;
-  const target = await prisma.adminUser.findUnique({ where: { id } });
-  if (!target) return res.status(404).json({ error: 'User not found' });
-
-  const generatedPassword = generatePassword();
-  const passwordHash = await bcrypt.hash(generatedPassword, 12);
-  await prisma.adminUser.update({ where: { id }, data: { passwordHash } });
-  await prisma.adminSession.deleteMany({ where: { adminUserId: id } });
-
-  res.json({ generatedPassword });
-});
-
-router.delete('/users/:id', requireSuperAdmin, async (req: AuthenticatedRequest, res: Response) => {
-  const { id } = req.params;
-  if (id === req.user!.userId) {
-    return res.status(400).json({ error: 'You cannot delete your own account.' });
-  }
-  await prisma.adminUser.delete({ where: { id } });
   res.json({ success: true });
 });
 

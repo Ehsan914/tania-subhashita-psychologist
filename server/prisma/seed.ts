@@ -1,39 +1,36 @@
-import 'dotenv/config';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../generated/prisma/client';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { prisma } from '../lib/prisma.js';
+import { auth } from '../lib/auth.js';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set');
+// The site's single admin. Sign-up is disabled in Better Auth, so the account is
+// created here through Better Auth's own adapter and password hasher.
+async function seedAdmin() {
+  const email = process.env.SEED_ADMIN_EMAIL || 'admin@mindcare.com';
+  const ctx = await auth.$context;
+
+  if (await ctx.internalAdapter.findUserByEmail(email)) {
+    console.log(`✅ Admin ${email} already exists (password unchanged)`);
+    return;
+  }
+
+  const password = process.env.SEED_ADMIN_PASSWORD || crypto.randomBytes(12).toString('base64url');
+  const user = await ctx.internalAdapter.createUser(
+    { email, name: 'Admin', emailVerified: false },
+    { method: 'admin' },
+  );
+  await ctx.internalAdapter.linkAccount({
+    userId: user.id,
+    providerId: 'credential',
+    accountId: user.id,
+    password: await ctx.password.hash(password),
+  });
+  console.log(`✅ Admin created (email: ${email}, password: ${password}) — change it after first login`);
 }
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Seeding database with current site content...\n');
 
-  // ─── Admin User ────────────────────────────────────────────────────────────────
-  // Only used when the admin does not exist yet; an existing admin is left untouched.
-  const defaultPassword = process.env.SEED_ADMIN_PASSWORD || crypto.randomBytes(12).toString('base64url');
-  const passwordHash = await bcrypt.hash(defaultPassword, 12);
-
-  const existingAdmin = await prisma.adminUser.findUnique({ where: { email: 'admin@mindcare.com' } });
-  await prisma.adminUser.upsert({
-    where: { email: 'admin@mindcare.com' },
-    update: {},
-    create: {
-      email: 'admin@mindcare.com',
-      passwordHash,
-      name: 'Admin',
-      role: 'Super Admin',
-      isSuperAdmin: true,
-    },
-  });
-  console.log(existingAdmin
-    ? '✅ Super admin already exists (password unchanged)'
-    : `✅ Super admin created (email: admin@mindcare.com, password: ${defaultPassword}) — change it after first login`);
+  await seedAdmin();
 
   // ─── Site Settings ───────────────────────────────────────────────────────────
   await prisma.siteSettings.upsert({

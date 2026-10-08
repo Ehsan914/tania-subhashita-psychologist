@@ -1,43 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../lib/jwtSecret.js';
+import { fromNodeHeaders } from 'better-auth/node';
+import { auth } from '../lib/auth.js';
 
 export interface AuthenticatedRequest extends Request<Record<string, string>> {
   user?: {
-    userId: string;
+    id: string;
     email: string;
     name: string;
-    isSuperAdmin: boolean;
   };
 }
 
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+export async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!session) {
     return res.status(401).json({ error: 'Authentication required. Please log in.' });
   }
 
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      userId: string;
-      email: string;
-      name: string;
-      isSuperAdmin: boolean;
-    };
-
-    req.user = decoded;
-    next();
-  } catch {
-    return res.status(401).json({ error: 'Invalid or expired token. Please log in again.' });
-  }
-}
-
-export function requireSuperAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (!req.user?.isSuperAdmin) {
-    return res.status(403).json({ error: 'Super admin access required.' });
-  }
+  const { id, email, name } = session.user;
+  req.user = { id, email, name };
   next();
 }
