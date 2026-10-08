@@ -1,0 +1,5 @@
+# Track only client/ and server/; everything else at the root is ignored.
+/*
+!/.gitignore
+!/client/
+!/server/
