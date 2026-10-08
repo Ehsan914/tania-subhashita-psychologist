@@ -37,37 +37,6 @@ export async function refreshAccessToken(): Promise<string | null> {
   }
 }
 
-export function useApiData<T>(endpoint: string, defaultValue: T): {
-  data: T;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-} {
-  const [data, setData] = useState<T>(defaultValue);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API}/api/${endpoint}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setData(json ?? defaultValue);
-    } catch (err: any) {
-      console.error(`API fetch error (${endpoint}):`, err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [endpoint]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  return { data, loading, error, refetch: fetchData };
-}
-
 export function useAdminData<T>(endpoint: string, defaultValue: T): {
   data: T;
   loading: boolean;
