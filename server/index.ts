@@ -22,7 +22,7 @@ if (IS_PROD && !process.env.APP_URL) {
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:5173',
-  process.env.APP_URL,
+  process.env.APP_URL?.replace(/\/+$/, ''),
 ].filter(Boolean) as string[];
 
 // ─── Middleware ─────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ app.use(cors({
     // Allow requests with no origin (e.g. mobile apps, curl, Postman)
     if (!origin) return cb(null, true);
 
-    if (ALLOWED_ORIGINS.some(o => origin.startsWith(o))) {
+    if (ALLOWED_ORIGINS.includes(origin)) {
       cb(null, true);
     } else {
       console.warn(`CORS blocked: ${origin}`);
@@ -41,9 +41,19 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json({ limit: '10mb' }));
+// Railway's edge proxy sits in front of the app; trust its X-Forwarded-For so
+// rate limits key on the client IP rather than the proxy's.
+if (IS_PROD) app.set('trust proxy', 1);
+
+app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+// Express 5 leaves req.body undefined when a request has no body; handlers
+// destructure it, so give them an empty object instead.
+app.use((req, _res, next) => {
+  req.body ??= {};
+  next();
+});
 
 // ─── Logging (dev only) ────────────────────────────────────────────────────────
 if (!IS_PROD) {
@@ -72,7 +82,7 @@ app.use('/api/admin', adminRoutes);
 if (!IS_PROD) {
   const clientDist = path.join(__dirname, '..', 'client', 'dist');
   app.use(express.static(clientDist));
-  app.get('*', (_req, res) => {
+  app.get('/{*splat}', (_req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }
@@ -83,7 +93,12 @@ app.use((_req, res) => {
 });
 
 // ─── Error Handler ─────────────────────────────────────────────────────────────
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: Error & { status?: number }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  // Body-parser and similar middleware tag client errors (400 bad JSON, 413 too large).
+  if (err.status && err.status >= 400 && err.status < 500) {
+    res.status(err.status).json({ error: err.message });
+    return;
+  }
   console.error('Server error:', err.message);
   res.status(500).json({ error: 'Internal server error' });
 });
