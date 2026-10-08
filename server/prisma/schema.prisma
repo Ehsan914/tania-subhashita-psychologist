@@ -329,9 +329,9 @@ model AssessmentScoreBand {
 model BookingSettings {
   id               String   @id @default("default")
   whatsappNumber   String   @default("8801580700700")
-  timeSlots        String   @default("10:00 AM\n11:00 AM\n02:00 PM\n04:00 PM\n06:00 PM\n07:00 PM") @db.Text
-  sessionDurations String   @default("20-Min Intro (Free)\n50-Min Full Session") @db.Text
-  introText        String   @default("Your first introductory consultation includes 20 free minutes with absolutely zero obligation.")
+  timeSlots        String   @default("10:00 am\n11:00 am\n2:00 pm\n4:00 pm\n6:00 pm\n7:00 pm") @db.Text
+  sessionDurations String   @default("20-min intro (Free)\n60-min session (Standard)") @db.Text
+  introText        String   @default("Your first 20 minutes are free, with no obligation to continue. Choose what suits you and Tania will confirm on WhatsApp.")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
