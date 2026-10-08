@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not set');
@@ -14,9 +15,11 @@ async function main() {
   console.log('🌱 Seeding database with current site content...\n');
 
   // ─── Admin User ────────────────────────────────────────────────────────────────
-  const defaultPassword = 'admin123';
+  // Only used when the admin does not exist yet; an existing admin is left untouched.
+  const defaultPassword = process.env.SEED_ADMIN_PASSWORD || crypto.randomBytes(12).toString('base64url');
   const passwordHash = await bcrypt.hash(defaultPassword, 12);
 
+  const existingAdmin = await prisma.adminUser.findUnique({ where: { email: 'admin@mindcare.com' } });
   await prisma.adminUser.upsert({
     where: { email: 'admin@mindcare.com' },
     update: {},
@@ -28,7 +31,9 @@ async function main() {
       isSuperAdmin: true,
     },
   });
-  console.log(`✅ Super admin created (email: admin@mindcare.com, password: ${defaultPassword})`);
+  console.log(existingAdmin
+    ? '✅ Super admin already exists (password unchanged)'
+    : `✅ Super admin created (email: admin@mindcare.com, password: ${defaultPassword}) — change it after first login`);
 
   // ─── Site Settings ───────────────────────────────────────────────────────────
   await prisma.siteSettings.upsert({
