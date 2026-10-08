@@ -42,9 +42,9 @@ async function main() {
       siteTagline: 'Psychologist · Mental Health Expert',
       announcementText: '<strong class="text-[#E4B24C]">First session: 20 minutes free</strong> — in-person at <span class="font-semibold underline decoration-[#E4B24C]">MIND CARE, New Eskaton</span> &amp; online via Zoom / Google Meet.',
       announcementActive: true,
-      facebookUrl: '#',
+      facebookUrl: 'https://www.facebook.com/share/174Enkbe4y/',
       instagramUrl: '#',
-      linkedinUrl: '#',
+      linkedinUrl: 'https://www.linkedin.com/in/tania-rahman-subhashita-a08160221',
     },
   });
   console.log('✅ Site settings created');
@@ -62,6 +62,7 @@ async function main() {
       description: 'Compassionate, evidence-based professional support for depression, anxiety, trauma, and behavioral addictions. Rebuild meaning and reclaim your personal peace in a safe, completely confidential space.',
       ctaPrimaryText: 'Book 20-Min Free Consult',
       ctaSecondaryText: 'Our services',
+      portraitImageUrl: '/images/room.jpg',
       portraitQuote: '\u201cHelping you heal, grow, and thrive — every day.\u201d',
       portraitAttribution: '— Tania Subhashita',
     },
@@ -91,7 +92,8 @@ async function main() {
       paragraph1: 'Maybe it is a heavy drop in mood that won\'t lift, anxiety that holds you hostage at school or work, traumatic memories that replay, or a habit that\'s slowly taking control of your daily decisions. From the outside, you look successful. From the inside, running this routine is exhausting.',
       paragraph2: 'I am <strong class="text-[#1C4751] font-medium">Tania Subhashita</strong>, a licensed mental health professional based in Dhaka. I offer a warm, strictly confidential, and unvarnished safe space where you can let down your guard, systematically study what hurts, and introduce evidence-based steps to rebuild.',
       credentialName: 'Tania Subhashita',
-      credentialTitle: 'MA in Psychology & Clinical Social Work (University of Dhaka). Specializing in Cognitive and Compassion-focused therapies.',
+      credentialTitle: 'Psychologist &amp; Clinical Psycho-Social Counselor. Bachelor\'s &amp; Master\'s in Psychology, Professional Master\'s in Clinical Social Work (University of Dhaka).',
+      portraitImageUrl: '/images/warm-editorial-portrait-in-mauve-saree.png',
     },
   });
   console.log('✅ Welcome section created');
@@ -309,10 +311,11 @@ You do not have to carry the heavy burden of trauma alone.`,
 
   // ─── Gallery Images ──────────────────────────────────────────────────────────
   const galleryImages = [
-    { url: 'https://images.unsplash.com/photo-1544027993-37db48d8e6eb?auto=format&fit=crop&q=80&w=800', altText: 'Therapy room with natural light', order: 0 },
-    { url: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&q=80&w=800', altText: 'Peaceful meditation space', order: 1 },
-    { url: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=800', altText: 'Calm wellness environment', order: 2 },
-    { url: 'https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?auto=format&fit=crop&q=80&w=800', altText: 'Nature-inspired healing space', order: 3 },
+    { url: '/images/gallery-training-group.jpeg', altText: 'Tania Subhashita with fellow participants at a professional training session', order: 0 },
+    { url: '/images/gallery-sfsc-certificate.jpeg', altText: 'Tania Subhashita receiving her Strengthening Families, Strengthening Communities (SFSC) parenting programme certificate', order: 1 },
+    { url: '/images/gallery-advanced-therapeutic-workshop.jpeg', altText: 'Tania Subhashita receiving her certificate from the Advanced Therapeutic Mental Health Workshop', order: 2 },
+    { url: '/images/gallery-clinical-psychology-conference.jpeg', altText: 'Tania Subhashita with Prof. Jobeda Khatun at the 6th Bangladesh Clinical Psychology Conference, University of Dhaka', order: 3 },
+    { url: '/images/gallery-moonflower-autism-foundation.jpeg', altText: 'Tania Subhashita with Mofijul Islam, Executive Director of Moonflower Autism Foundation', order: 4 },
   ];
   for (const image of galleryImages) {
     await prisma.galleryImage.create({ data: image });
@@ -344,23 +347,29 @@ You do not have to carry the heavy burden of trauma alone.`,
       id: 'default',
       tagline: 'Professional Bio',
       heading: 'Meet Tania Subhashita',
-      bio1: "I hold my Honours and Master's degrees in Psychology from the <strong class=\"text-[#1C4751]\">University of Dhaka</strong>, followed by a Professional Master's in Clinical Social Work from the same esteemed institution. This dual academic background empowers me to bridge psychological insights and structural social dynamics.",
-      bio2: "Over my years of private chamber practice, I have witnessed how traditional methods can sometimes feel rigid or sterile. Patients need both evidence-based scientific procedures and robust, non-judgmental human comfort.",
-      quote: '\u201cA mental medical chart only tracks symptoms. Therapeutic alliance heals the actual human underneath those symptoms.\u201d',
+      bio1: "Tania Subhashita is a psychologist and mental health professional dedicated to promoting emotional wellbeing and psychological resilience. She holds Honours and Master's degrees in Psychology, along with a Professional Master's degree in Clinical Social Work from the Institute of Social Welfare and Research, <strong class=\"text-[#1C4751]\">University of Dhaka</strong>. She is also an experienced meditation practitioner who integrates mindfulness techniques into her therapeutic work.",
+      bio2: "Throughout her career, she has worked with numerous psychiatric clinics and rehabilitation centres across Dhaka, providing psychological assessment, psychotherapy, and addiction recovery support. Her areas of expertise include psychiatric conditions, substance use disorders, emotional dysregulation, and family relationship challenges. Beyond clinical practice, she is an active advocate for mental health awareness, organising workshops, awareness programmes, and educational sessions in Dhaka and beyond, and sharing insights on mental health through podcasts, YouTube, and Facebook.",
+      quote: 'My approach is compassionate, personalized, and focused on meaningful progress.',
       location: 'Dhaka & Online',
       experience: '10+ Years clinical focus',
+      portraitImageUrl: '/images/warm-editorial-portrait-in-mauve-saree.png',
     },
   });
   console.log('✅ About section created');
 
   // ─── Credentials ─────────────────────────────────────────────────────────────
   const credentials = [
-    { title: 'CBT (Cognitive Therapy)', description: 'Licensed tools for breaking repetitive thinking traps, automatic panic triggers, school exam stress, and trauma.', order: 0 },
-    { title: 'DBT (Dialectical Behavior)', description: 'Designed for emotional dysregulation, self-harm impulses, suicidal thoughts, and bipolar mood stabilization.', order: 1 },
-    { title: 'EMDR Therapy protocols', description: 'Specialized neuroscience-based desensitization to gently process underlying trauma (PTSD) and abuse memories.', order: 2 },
-    { title: 'Addiction Interventions', description: 'Advanced clinical training for complex chemical drug/alcohol abuse recovery, and digital behavioral dependency loop-reset.', order: 3 },
-    { title: 'Mindfulness Meditation', description: 'Focus on emotional anchor mapping, parasympathetic somatic breathing exercises, and emotional grounding.', order: 4 },
-    { title: 'Family & Couple Systems', description: 'Systemic counseling strategies focused on repairing deep relational scars, parental harmony, and sibling discord.', order: 5 },
+    { title: 'Cognitive Behaviour Therapy (CBT)', description: 'Trained at the University of Dhaka. Identifying and changing unhelpful patterns of thinking and behaviour.', order: 0 },
+    { title: 'Dialectical Behaviour Therapy (DBT)', description: 'Skills for emotional regulation, distress tolerance, and healthier relationships.', order: 1 },
+    { title: 'Certified Addiction Professional', description: 'Colombo Plan training with the Department of Narcotics Control, Dhaka. Assessment and recovery support for substance use.', order: 2 },
+    { title: 'Eye Movement Desensitisation and Reprocessing (EMDR)', description: 'A structured approach to processing traumatic memories.', order: 3 },
+    { title: 'SFSC Parenting Programme', description: 'Strengthening Families, Strengthening Communities. Race Equality Foundation, UK.', order: 4 },
+    { title: 'Systemic Family Therapy', description: 'Working with the family as a whole to improve communication and resolve conflict.', order: 5 },
+    { title: 'Basic Psycho-Therapeutic Counselling', description: 'Foundational training in counselling skills and the therapeutic relationship.', order: 6 },
+    { title: 'Sexual Disorder Management', description: 'Assessment and counselling for sexual health concerns.', order: 7 },
+    { title: 'Neuro-Linguistic Programming (NLP)', description: 'Techniques for changing patterns of thought, language, and behaviour.', order: 8 },
+    { title: 'Transactional Analysis (TA)', description: 'A framework for understanding personality, communication, and relationships.', order: 9 },
+    { title: 'Mindfulness', description: 'An experienced meditation practitioner who brings mindfulness techniques into therapy.', order: 10 },
   ];
   for (const cred of credentials) {
     await prisma.credential.create({ data: cred });
