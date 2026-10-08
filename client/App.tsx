@@ -16,21 +16,10 @@ import BookPage from './pages/BookPage';
 import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
 import AdminDashboard from './admin/AdminDashboard';
-import AdminHome from './admin/AdminHome';
-import AdminStatistics from './admin/AdminStatistics';
-import AdminServices from './admin/AdminServices';
-import AdminPrograms from './admin/AdminPrograms';
-import AdminBlog from './admin/AdminBlog';
-import AdminTestimonials from './admin/AdminTestimonials';
-import AdminFAQ from './admin/AdminFAQ';
-import AdminGallery from './admin/AdminGallery';
-import AdminAbout from './admin/AdminAbout';
-import AdminContact from './admin/AdminContact';
-import AdminSettings from './admin/AdminSettings';
 import AdminAccount from './admin/AdminAccount';
-import AdminAssessment from './admin/AdminAssessment';
+import AdminContentPage from './admin/AdminContentPage';
+import AdminPageEditor from './admin/AdminPageEditor';
 import AdminAppointments from './admin/AdminAppointments';
-import AdminBookingSettings from './admin/AdminBookingSettings';
 
 // ─── Scroll Reset ───────────────────────────────────────────────────────────────
 function ScrollToTop() {
@@ -45,8 +34,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f0f1a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="admin-app" style={{ display: 'grid', placeItems: 'center' }}>
+        <span className="spin" role="status" aria-label="Loading" />
       </div>
     );
   }
@@ -78,20 +67,20 @@ export default function App() {
           }
         >
           <Route index element={<AdminDashboard />} />
-          <Route path="home" element={<AdminHome />} />
-          <Route path="statistics" element={<AdminStatistics />} />
-          <Route path="services" element={<AdminServices />} />
-          <Route path="programs" element={<AdminPrograms />} />
-          <Route path="blog" element={<AdminBlog />} />
-          <Route path="testimonials" element={<AdminTestimonials />} />
-          <Route path="faq" element={<AdminFAQ />} />
-          <Route path="gallery" element={<AdminGallery />} />
-          <Route path="about" element={<AdminAbout />} />
-          <Route path="contact" element={<AdminContact />} />
-          <Route path="assessment" element={<AdminAssessment />} />
+          <Route path="home" element={<AdminPageEditor section="home" />} />
+          <Route path="statistics" element={<AdminContentPage type="statistics" />} />
+          <Route path="services" element={<AdminContentPage type="services" />} />
+          <Route path="programs" element={<AdminContentPage type="programs" />} />
+          <Route path="blog" element={<AdminContentPage type="blog" />} />
+          <Route path="testimonials" element={<AdminContentPage type="testimonials" />} />
+          <Route path="faq" element={<AdminContentPage type="faqs" />} />
+          <Route path="gallery" element={<AdminContentPage type="gallery" />} />
+          <Route path="about" element={<AdminPageEditor section="about" />} />
+          <Route path="contact" element={<AdminPageEditor section="contact" />} />
+          <Route path="assessment" element={<AdminContentPage type="assessment" />} />
           <Route path="appointments" element={<AdminAppointments />} />
-          <Route path="booking-settings" element={<AdminBookingSettings />} />
-          <Route path="settings" element={<AdminSettings />} />
+          <Route path="booking-settings" element={<AdminPageEditor section="booking" />} />
+          <Route path="settings" element={<AdminPageEditor section="settings" />} />
           <Route path="account" element={<AdminAccount />} />
         </Route>
       </Routes>
@@ -110,6 +99,7 @@ export default function App() {
         <Route path="services" element={<ServicesPage />} />
         <Route path="programs" element={<ProgramsPage />} />
         <Route path="blog" element={<BlogPage />} />
+        <Route path="blog/:slug" element={<BlogPage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="book" element={<BookPage />} />
       </Route>

@@ -1,160 +1,146 @@
-import { useState } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+// Admin shell from the design (admin/assets/admin.js): grouped sidebar, top bar with a
+// breadcrumb, mobile drawer navigation and the shared toast/pending-count context.
+import { Fragment, useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import {
-  LayoutDashboard, Home, BarChart3, Briefcase, FolderOpen,
-  FileText, MessageSquareQuote, HelpCircle, Image, User, Settings,
-  Menu, X, LogOut, ChevronRight, BookOpen, ClipboardList, UserCog,
-  CalendarCheck, MessageCircle
-} from 'lucide-react';
+import { AdminProvider, useAdmin } from './ui/AdminContext';
+import { Icon, type IconName } from './ui/icons';
+import { initials } from './ui/format';
+import '../styles/admin.css';
 
-const navItems = [
-  { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { path: '/admin/home', icon: Home, label: 'Home Page' },
-  { path: '/admin/statistics', icon: BarChart3, label: 'Statistics' },
-  { path: '/admin/services', icon: Briefcase, label: 'Services' },
-  { path: '/admin/programs', icon: FolderOpen, label: 'Programs' },
-  { path: '/admin/blog', icon: FileText, label: 'Blog Posts' },
-  { path: '/admin/testimonials', icon: MessageSquareQuote, label: 'Testimonials' },
-  { path: '/admin/faq', icon: HelpCircle, label: 'FAQs' },
-  { path: '/admin/gallery', icon: Image, label: 'Gallery' },
-  { path: '/admin/about', icon: BookOpen, label: 'About Page' },
-  { path: '/admin/contact', icon: User, label: 'Contact Info' },
-  { path: '/admin/assessment', icon: ClipboardList, label: 'Assessment' },
-  { path: '/admin/appointments', icon: CalendarCheck, label: 'Appointments' },
-  { path: '/admin/booking-settings', icon: MessageCircle, label: 'Booking Settings' },
-  { path: '/admin/settings', icon: Settings, label: 'Site Settings' },
-  { path: '/admin/account', icon: UserCog, label: 'Account' },
+type NavItem = { to: string; label: string; icon: IconName; badge?: boolean; end?: boolean };
+type NavGroup = { group: string; items: NavItem[] };
+
+export const ADMIN_NAV: NavGroup[] = [
+  { group: 'Overview', items: [{ to: '/admin', label: 'Dashboard', icon: 'dash', end: true }] },
+  {
+    group: 'Clients',
+    items: [
+      { to: '/admin/appointments', label: 'Appointments', icon: 'cal', badge: true },
+      { to: '/admin/booking-settings', label: 'Booking settings', icon: 'clock' },
+    ],
+  },
+  {
+    group: 'Website',
+    items: [
+      { to: '/admin/home', label: 'Home page', icon: 'home' },
+      { to: '/admin/about', label: 'About page', icon: 'user' },
+      { to: '/admin/services', label: 'Services', icon: 'heart' },
+      { to: '/admin/programs', label: 'Programs', icon: 'layers' },
+      { to: '/admin/blog', label: 'Journal posts', icon: 'pen' },
+      { to: '/admin/testimonials', label: 'Testimonials', icon: 'quote' },
+      { to: '/admin/faq', label: 'FAQs', icon: 'help' },
+      { to: '/admin/gallery', label: 'Gallery', icon: 'image' },
+      { to: '/admin/statistics', label: 'Statistics', icon: 'chart' },
+      { to: '/admin/assessment', label: 'Self-check', icon: 'check' },
+      { to: '/admin/contact', label: 'Contact info', icon: 'phone' },
+    ],
+  },
+  {
+    group: 'Settings',
+    items: [
+      { to: '/admin/settings', label: 'Site settings', icon: 'gear' },
+      { to: '/admin/account', label: 'Account', icon: 'key' },
+    ],
+  },
 ];
 
-export default function AdminLayout() {
-  const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const isFullWidth = pathname === '/admin';
-  const isWide = pathname === '/admin/appointments';
+// Pages whose content uses the wider column.
+const WIDE_PAGES = ['/admin/appointments'];
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/admin/login');
-  };
+function currentPage(pathname: string) {
+  for (const { group, items } of ADMIN_NAV) {
+    const item = items.find((i) => i.to === pathname.replace(/\/$/, ''));
+    if (item) return { group, label: item.label };
+  }
+  return null;
+}
+
+function Sidebar() {
+  const { user, logout } = useAuth();
+  const { pendingCount } = useAdmin();
+  const name = user?.name || user?.email || '';
 
   return (
-    <div className="min-h-screen bg-[#0f0f1a] flex select-auto" style={{ fontFamily: "'Inter', 'Mulish', sans-serif" }}>
-      {/* Sidebar Overlay (mobile) */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#12121f] border-r border-white/5 flex flex-col transform transition-transform duration-300 ease-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
-        {/* Sidebar Header */}
-        <div className="p-5 border-b border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Settings className="w-4.5 h-4.5 text-white" />
-            </div>
-            <div>
-              <div className="text-sm font-bold text-white tracking-tight">CMS Admin</div>
-              <div className="text-[10px] text-gray-500 tracking-wider uppercase">Tania Subhashita's Website</div>
-            </div>
-          </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-500 hover:text-white p-1"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 scrollbar-thin">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.end}
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
-                  isActive
-                    ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'
-                }`
-              }
-            >
-              <item.icon className="w-4.5 h-4.5 shrink-0" />
-              <span className="flex-1">{item.label}</span>
-              <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50 transition-opacity" />
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* User Section */}
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 mb-3">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full ring-2 ring-indigo-500/30" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-xs font-bold">
-                {user?.name?.[0] || '?'}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{user?.name || 'Admin'}</div>
-              <div className="text-[10px] text-gray-500 truncate">{user?.email}</div>
-            </div>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 text-xs text-gray-400 hover:text-red-400 hover:bg-red-500/5 py-2 rounded-lg transition-all cursor-pointer border border-transparent hover:border-red-500/10"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign Out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-[#0f0f1a]/80 backdrop-blur-xl border-b border-white/5 px-4 lg:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-white/5"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="flex items-center gap-4">
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-gray-500 hover:text-indigo-400 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/5"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-              View Public Site
-            </a>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          {isFullWidth
-            ? <Outlet />
-            : <div className={`${isWide ? 'max-w-7xl' : 'max-w-5xl'} mx-auto`}><Outlet /></div>}
-        </main>
+    <aside className="side" id="side" aria-label="Admin navigation">
+      <NavLink className="brand" to="/admin" end>
+        <img src="/logo-pink.svg" alt="Tania Subhashita" /><span>Admin</span>
+      </NavLink>
+      <nav>
+        {ADMIN_NAV.map(({ group, items }) => (
+          <Fragment key={group}>
+            <p className="group">{group}</p>
+            {items.map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.end}>
+                <Icon name={item.icon} /><span>{item.label}</span>
+                {item.badge && pendingCount > 0 && (
+                  <span className="badge" aria-label={`${pendingCount} pending`}>{pendingCount}</span>
+                )}
+              </NavLink>
+            ))}
+          </Fragment>
+        ))}
+      </nav>
+      <div className="me">
+        <span className="avatar">{user?.avatarUrl ? <img src={user.avatarUrl} alt="" /> : initials(name)}</span>
+        <div className="who"><strong>{user?.name}</strong><small>{user?.email}</small></div>
+        <button className="icon-btn" type="button" title="Sign out" aria-label="Sign out" onClick={logout}>
+          <Icon name="out" />
+        </button>
       </div>
+    </aside>
+  );
+}
+
+function Shell() {
+  const [navOpen, setNavOpen] = useState(false);
+  const { pathname } = useLocation();
+  const page = currentPage(pathname);
+
+  useEffect(() => setNavOpen(false), [pathname]);
+  // opening the menu on a narrow screen takes focus into it
+  useEffect(() => {
+    if (navOpen) document.querySelector<HTMLElement>('#side nav a')?.focus();
+  }, [navOpen]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setNavOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  return (
+    <div className={navOpen ? 'nav-open' : undefined}>
+      <Sidebar />
+      <div className="scrim" onClick={() => setNavOpen(false)} />
+      <header className="top">
+        <button
+          className="icon-btn menu" type="button" aria-label="Open menu" aria-controls="side"
+          aria-expanded={navOpen} onClick={() => setNavOpen((open) => !open)}
+        >
+          <Icon name="menu" />
+        </button>
+        <p className="crumb">
+          {page && page.group !== 'Overview' && <>{page.group} / </>}
+          <b>{page?.label ?? 'Admin'}</b>
+        </p>
+        <span className="spacer" />
+        <a className="abtn ghost sm" href="/" target="_blank" rel="noopener noreferrer"><Icon name="ext" />View site</a>
+      </header>
+      <main className="main">
+        <div className={WIDE_PAGES.includes(pathname) ? 'inner wide' : 'inner'}>
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function AdminLayout() {
+  return (
+    <div className="admin-app">
+      <AdminProvider>
+        <Shell />
+      </AdminProvider>
     </div>
   );
 }

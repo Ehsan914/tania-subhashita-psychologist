@@ -1,134 +1,109 @@
-import { useState, FormEvent } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useEffect } from 'react';
+// Admin sign-in (design: admin/login.html): portrait on the left, a short form on the right.
+// It lives outside the admin shell, so it brings its own .admin-app scope and stylesheet.
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Icon } from './ui/icons';
+import '../styles/admin.css';
+import { usePageMeta } from '../hooks/usePageMeta';
 
-export default function AdminLogin() {
-  const { isAuthenticated, loading, login } = useAuth();
-  const navigate = useNavigate();
+const EMAIL = /^\S+@\S+\.\S+$/;
+
+function Art() {
+  return (
+    <div className="art" aria-hidden="true">
+      <img
+        src="/images/warm-editorial-portrait-in-mauve-saree.png" alt="" width={1024} height={1536}
+        style={{ objectPosition: '50% 22%' }}
+      />
+      <blockquote>“A quiet room to set it down.”</blockquote>
+    </div>
+  );
+}
+
+function LoginForm() {
+  const { login } = useAuth();
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      navigate('/admin');
-    }
-  }, [isAuthenticated, loading, navigate]);
-
-  const handleSubmit = async (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-
-    const result = await login(email, password);
-
-    if (!result.success) {
-      setError(result.error || 'Login failed');
+    const address = email.trim();
+    const msg = !address || !password ? 'Enter your email and password.'
+      : !EMAIL.test(address) ? 'That email address looks incomplete.' : '';
+    setError(msg);
+    if (msg) {
+      (address ? passwordRef : emailRef).current?.focus();
+      return;
     }
+    setSubmitting(true);
+    const result = await login(address, password);
     setSubmitting(false);
+    // on success the session updates and the redirect effect takes over
+    if (!result.success) setError(result.error || 'Login failed');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0f0f1a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+  return (
+    <form onSubmit={submit} noValidate>
+      <div>
+        <img className="logo" src="/logo-pink.svg" alt="Tania Subhashita" width={414} height={73} />
+        <h1>Welcome back</h1>
       </div>
-    );
-  }
+      <p className="sub">Sign in to manage appointments and the website.</p>
+      <p className={error ? 'alert show' : 'alert'} role="alert">{error}</p>
+      <div className="f">
+        <label htmlFor="email">Email</label>
+        <input
+          ref={emailRef} className="in" id="email" type="email" autoComplete="username" required autoFocus
+          value={email} onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+      <div className="f">
+        <label htmlFor="password">Password</label>
+        <div className="pw">
+          <input
+            ref={passwordRef} className="in" id="password" type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            className="icon-btn" type="button" aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-pressed={showPassword} onClick={() => setShowPassword((v) => !v)}
+          >
+            <Icon name="eye" />
+          </button>
+        </div>
+      </div>
+      <button className="abtn primary" type="submit" disabled={submitting}>
+        {submitting ? <><span className="spin" aria-hidden="true" />Signing in…</> : 'Sign in'}
+      </button>
+      <p className="note">Only the site’s admin account can sign in here.</p>
+      <a className="back" href="/">← Back to the website</a>
+    </form>
+  );
+}
+
+export default function AdminLogin() {
+  usePageMeta('Sign in · Admin');
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) navigate('/admin');
+  }, [isAuthenticated, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#0f0f1a] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Logo Area */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 shadow-lg shadow-indigo-500/30">
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Admin Panel</h1>
-          <p className="text-sm text-gray-500 mt-1">Tania Subhashita's Website</p>
+    <div className="admin-app">
+      <main className="login">
+        <Art />
+        <div className="pane">
+          {loading ? <span className="spin" role="status" aria-label="Checking your session" /> : <LoginForm />}
         </div>
-
-        {/* Login Card */}
-        <div className="bg-[#1a1a2e] border border-white/5 rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-lg font-semibold text-white mb-2">Welcome back</h2>
-          <p className="text-sm text-gray-400 mb-8">Sign in with your admin credentials to manage site content.</p>
-
-          {error && (
-            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              ⚠️ {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="login-email" className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
-                Email Address
-              </label>
-              <input
-                id="login-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@mindcare.com"
-                className="w-full bg-[#12121f] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
-                autoComplete="email"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="login-password" className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wider">
-                Password
-              </label>
-              <input
-                id="login-password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-[#12121f] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
-                autoComplete="current-password"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Sign In
-                </>
-              )}
-            </button>
-          </form>
-
-          <p className="text-xs text-gray-600 text-center mt-6">
-            Only authorized admin accounts can access the panel.
-          </p>
-        </div>
-
-        {/* Back to site link */}
-        <div className="text-center mt-8">
-          <a href="/" className="text-sm text-gray-500 hover:text-indigo-400 transition-colors">
-            ← Back to public site
-          </a>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
