@@ -12,7 +12,7 @@
     { "source": "/journal/:slug", "destination": "/blog/:slug", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/studio/:path*", "destination": "/studio/index.html" },
+    { "source": "/studio/:path*", "destination": "/studio" },
     { "source": "/static/:file(favicon\\.ico|favicon\\.svg|apple-touch-icon\\.png|manifest\\.webmanifest)", "destination": "/studio/static/:file" }
   ],
   "headers": [
