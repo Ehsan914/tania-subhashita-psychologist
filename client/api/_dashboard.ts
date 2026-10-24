@@ -1,5 +1,6 @@
 // Pure rules behind api/bookings.ts: which Status changes are allowed, how a Sheet row becomes
-// what the Studio's Bookings tool shows, who may call, and which origins may read the answer.
+// what the Studio's Dashboard and Appointments tools show, the dashboard's weekly and status
+// counts, who may call, and which origins may read the answer.
 // No I/O here, so every rule is tested on its own (tests/bookings.test.ts).
 import { COLUMN } from './_sheet.js';
 
@@ -83,12 +84,69 @@ export function toBooking(row: readonly unknown[]): Booking | null {
   };
 }
 
-// Only what still needs Tania: requests to answer and sessions to mark. Declined, Attended and
-// No-show rows stay in the Sheet and never leave it through this function.
-const ACTIONABLE = new Set<string>(['New', 'Confirmed']);
+/** Every booking row, in Sheet order, for the Appointments list; the header and blank rows dropped. */
+export function allBookings(rows: readonly (readonly unknown[])[]): Booking[] {
+  return rows.map(toBooking).filter((b): b is Booking => b !== null);
+}
 
-export function actionableBookings(rows: readonly (readonly unknown[])[]): Booking[] {
-  return rows.map(toBooking).filter((b): b is Booking => b !== null && ACTIONABLE.has(b.status));
+// ── dashboard aggregates ──
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEK_DAYS = 7;
+export const TREND_WEEKS = 12;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}/;
+
+const dayNumber = (iso: string) => Math.floor(Date.parse(`${iso.slice(0, 10)}T00:00:00Z`) / DAY_MS);
+const dayIso = (n: number) => new Date(n * DAY_MS).toISOString().slice(0, 10);
+
+// A request counts as confirmed once Tania has said yes to it, whatever happened at the session.
+const CONFIRMED = new Set<string>(['Confirmed', 'Attended']);
+
+export interface WeekCount {
+  start: string; // YYYY-MM-DD, the week's first day
+  requests: number; // rows received that week
+  confirmed: number; // of those, rows now Confirmed or Attended
+}
+
+/**
+ * The trend chart: `weeks` seven-day weeks, oldest first, the last one ending on `today` (Dhaka).
+ * Each row is counted in the week its Received date falls in, which the Sheet holds in Dhaka time;
+ * "confirmed" is the part of that week's requests whose status is now Confirmed or Attended.
+ */
+export function weeklyCounts(bookings: readonly Booking[], today: string, weeks = TREND_WEEKS): WeekCount[] {
+  const first = dayNumber(today) - weeks * WEEK_DAYS + 1;
+  const counts = Array.from({ length: weeks }, (_, i) => ({ start: dayIso(first + i * WEEK_DAYS), requests: 0, confirmed: 0 }));
+  for (const b of bookings) {
+    if (!ISO_DATE.test(b.received)) continue;
+    const offset = dayNumber(b.received) - first;
+    const week = counts[Math.floor(offset / WEEK_DAYS)];
+    if (offset < 0 || !week) continue;
+    week.requests += 1;
+    if (CONFIRMED.has(b.status)) week.confirmed += 1;
+  }
+  return counts;
+}
+
+export interface StatusTotals {
+  confirmed: number;
+  pending: number;
+  cancelled: number;
+}
+
+// The donut's three slices from the Sheet's five statuses:
+//   Confirmed = Confirmed + Attended, Pending = New, Cancelled = Declined + No-show.
+// A blank or hand-typed status matches none and is left out.
+const SLICE: Record<string, keyof StatusTotals> = {
+  Confirmed: 'confirmed', Attended: 'confirmed', New: 'pending', Declined: 'cancelled', 'No-show': 'cancelled',
+};
+
+export function statusTotals(bookings: readonly Booking[]): StatusTotals {
+  const totals: StatusTotals = { confirmed: 0, pending: 0, cancelled: 0 };
+  for (const b of bookings) {
+    const slice = SLICE[b.status];
+    if (slice) totals[slice] += 1;
+  }
+  return totals;
 }
 
 /** The Sheet's 1-based row number holding this booking, or null. */
