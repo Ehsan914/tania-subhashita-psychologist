@@ -3,7 +3,8 @@
 import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useSiteData } from '../context/SiteDataContext';
-import { SplitWords, isMotionOff, useReveal } from '../site/motion';
+import { SplitWords, useReveal } from '../site/motion';
+import { scrollToTop } from '../site/smoothScroll';
 import { Segmented } from '../site/controls';
 import { useContactDetails } from '../site/SiteChrome';
 import { submitBooking } from '../site/book/api';
@@ -134,7 +135,7 @@ export default function BookPage() {
     setSent(result.status === 'saved'
       ? { id: result.id, details: trimmed, saved: true }
       : { id: '', details: trimmed, saved: false });
-    window.scrollTo({ top: 0, behavior: isMotionOff() ? 'auto' : 'smooth' });
+    scrollToTop(true);
   };
 
   if (showConfirmation) {

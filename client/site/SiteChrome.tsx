@@ -5,6 +5,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useSiteData, type RichText } from '../context/SiteDataContext';
 import { useHydrated } from '../hooks/useHydrated';
 import { InlineSpan } from './RichText';
+import { setScrollLocked } from './smoothScroll';
 
 const SCROLLED_AT = 40;
 const COMPACT_CRISIS_AT = 200;
@@ -93,7 +94,11 @@ export function SiteHeader() {
   useEffect(() => setMenuOpen(false), [pathname]);
   useEffect(() => {
     document.body.classList.toggle('menu-open', menuOpen);
-    return () => document.body.classList.remove('menu-open');
+    setScrollLocked(menuOpen);
+    return () => {
+      document.body.classList.remove('menu-open');
+      setScrollLocked(false);
+    };
   }, [menuOpen]);
 
   return (

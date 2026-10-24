@@ -4,6 +4,7 @@ import { SiteDataProvider, useSiteData } from '../context/SiteDataContext';
 import { useJsonLd } from '../hooks/usePageMeta';
 import { siteGraph } from '../lib/schema';
 import { CrisisHelp, SiteFooter, SiteHeader } from '../site/SiteChrome';
+import { useSmoothScroll } from '../site/smoothScroll';
 import '../styles/site.css';
 import '../styles/home.css';
 import '../styles/inner.css';
@@ -46,6 +47,7 @@ function PublicContent() {
   const { loading, contact, general, home, about } = useSiteData();
   useBodyPage();
   useReleaseReveals();
+  useSmoothScroll();
   useJsonLd('site', loading ? null : siteGraph({ contact, general, home, about }));
 
   if (loading) return <LoadingScreen />;
