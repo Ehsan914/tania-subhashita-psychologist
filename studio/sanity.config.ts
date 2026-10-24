@@ -12,8 +12,8 @@ const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'v75epg3m'
 export default defineConfig({
   name: 'default',
   title: 'Tania Subhashita',
-  // Served by the site at taniasubhashita.com/studio (see client/vercel.json).
-  basePath: '/studio',
+  // Served at taniasubhashita.com/studio: the prefix comes from project.basePath in
+  // sanity.cli.ts; a basePath here would be added on top of it (/studio/studio).
   icon: BrandIcon,
   theme,
   projectId,
