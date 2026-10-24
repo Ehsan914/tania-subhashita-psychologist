@@ -7,7 +7,7 @@ export const post = defineType({
   title: 'Blog post',
   type: 'document',
   icon: ComposeIcon,
-  fieldsets: [{name: 'details', title: 'Details', options: {columns: 3}}],
+  fieldsets: [{name: 'details', title: 'Details', options: {columns: 2}}],
   fields: [
     defineField({name: 'title', title: 'Title', type: 'string', validation: (rule) => rule.required()}),
     defineField({
@@ -20,7 +20,9 @@ export const post = defineType({
     }),
     defineField({name: 'date', title: 'Date', type: 'date', fieldset: 'details', validation: (rule) => rule.required()}),
     defineField({name: 'category', title: 'Category', type: 'string', fieldset: 'details'}),
-    defineField({name: 'readTime', title: 'Reading time', type: 'string', fieldset: 'details', description: 'e.g. 4 min read'}),
+    // The site now works out "N min read" from the post's word count. Kept, hidden, so posts that
+    // already hold a value don't show an "unknown field" warning.
+    defineField({name: 'readTime', title: 'Reading time', type: 'string', hidden: true}),
     defineField({
       name: 'summary',
       title: 'Summary',

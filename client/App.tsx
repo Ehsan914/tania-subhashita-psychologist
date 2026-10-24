@@ -10,11 +10,12 @@ import ContactPage from './pages/ContactPage';
 import BookPage from './pages/BookPage';
 import ServicePage from './pages/ServicePage';
 import NotFoundPage from './pages/NotFoundPage';
+import { scrollToTop } from './site/smoothScroll';
 
 // ─── Scroll Reset ───────────────────────────────────────────────────────────────
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  useEffect(() => { scrollToTop(); }, [pathname]);
   return null;
 }
 

@@ -14,5 +14,6 @@
     "strict": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["."]
+  "include": ["."],
+  "exclude": ["node_modules", "dist", "dist-server"]
 }
