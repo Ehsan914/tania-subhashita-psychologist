@@ -1,6 +1,11 @@
 import crypto from 'crypto';
 import { prisma } from '../lib/prisma.js';
 import { auth } from '../lib/auth.js';
+import { JOURNAL_DRAFTS, SERVICE_DETAILS } from './content.js';
+
+// The site's content as set out in docs/site-design-and-wording.md: every fact traces to the
+// previous site or the calm-elegant design, and the wording there is the wording here.
+// Change the document first, then this file.
 
 // The site's single admin. Sign-up is disabled in Better Auth, so the account is
 // created here through Better Auth's own adapter and password hasher.
@@ -27,10 +32,19 @@ async function seedAdmin() {
   console.log(`✅ Admin created (email: ${email}, password: ${password}) — change it after first login`);
 }
 
+const CHAMBER_ADDRESS = 'Aktar Mansion, House 30, Flat 1/A, Ismail Lane, New Eskaton, Dhaka 1000';
+
 async function main() {
   console.log('🌱 Seeding database with current site content...\n');
 
   await seedAdmin();
+
+  // The content lists below are created, not upserted, so a second run would duplicate them.
+  // A database that already has content (any service) is left as the admin last saved it.
+  if (await prisma.service.count() > 0) {
+    console.log('✅ Site content already present — left unchanged');
+    return;
+  }
 
   // ─── Site Settings ───────────────────────────────────────────────────────────
   await prisma.siteSettings.upsert({
@@ -39,11 +53,11 @@ async function main() {
     create: {
       id: 'default',
       siteName: 'Tania Subhashita',
-      siteTagline: 'Psychologist · Mental Health Expert',
-      announcementText: '<strong class="text-[#E4B24C]">First session: 20 minutes free</strong> — in-person at <span class="font-semibold underline decoration-[#E4B24C]">MIND CARE, New Eskaton</span> &amp; online via Zoom / Google Meet.',
+      siteTagline: 'Psychologist in Dhaka · Online across Bangladesh',
+      announcementText: '<strong>First session: 20 minutes free</strong>, in person at MIND CARE, New Eskaton, or online by Zoom or Google Meet.',
       announcementActive: true,
       facebookUrl: 'https://www.facebook.com/share/174Enkbe4y/',
-      instagramUrl: '#',
+      instagramUrl: '',
       linkedinUrl: 'https://www.linkedin.com/in/tania-rahman-subhashita-a08160221',
     },
   });
@@ -55,26 +69,26 @@ async function main() {
     update: {},
     create: {
       id: 'default',
-      tagline: 'Psychotherapy · Counselling · Dhaka Location',
-      titleLine1: 'Reconnect',
-      titleLine2: 'with your',
-      titleLine3: 'true self.',
-      description: 'Compassionate, evidence-based professional support for depression, anxiety, trauma, and behavioral addictions. Rebuild meaning and reclaim your personal peace in a safe, completely confidential space.',
-      ctaPrimaryText: 'Book 20-Min Free Consult',
-      ctaSecondaryText: 'Our services',
+      tagline: 'Psychologist in Dhaka · Online across Bangladesh',
+      titleLine1: 'A quiet room',
+      titleLine2: 'to set it',
+      titleLine3: 'down.',
+      description: 'Compassionate, evidence-based therapy with psychologist Tania Subhashita for anxiety, low mood, trauma and habits that have taken hold — in a calm room in New Eskaton, Dhaka, or online anywhere in Bangladesh.',
+      ctaPrimaryText: 'Book a free consult',
+      ctaSecondaryText: 'What I help with',
       portraitImageUrl: '/images/room.jpg',
-      portraitQuote: '\u201cHelping you heal, grow, and thrive — every day.\u201d',
+      portraitQuote: '“Helping you heal, grow, and thrive every day.”',
       portraitAttribution: '— Tania Subhashita',
     },
   });
   console.log('✅ Hero section created');
 
   // ─── Statistics ──────────────────────────────────────────────────────────────
+  // The previous site's home-page figures; see "Needs Tania's confirmation" in the doc.
   const statistics = [
-    { value: '1,560', label: 'Therapy Sessions Every Year', detail: 'Encompassing clinical assessments, in-depth CBT counseling, and personal follow-ups.', order: 0 },
-    { value: '22', label: 'Clients Supported Weekly', detail: 'Dedicated direct contact hours for unhurried, private custom tailored sessions.', order: 1 },
-    { value: '2,134', label: 'Happy & Satisfied Clients', detail: 'Individuals, couples, and family members who rediscovered light and peace.', order: 2 },
-    { value: '10+', label: 'Personalized Healing & Therapy Plans', detail: 'Advanced custom templates targeted for anxiety, addiction recovery, and youth exam distress.', order: 3 },
+    { value: '1,560', label: 'therapy sessions every year', detail: '', order: 0 },
+    { value: '22', label: 'clients supported each week', detail: '', order: 1 },
+    { value: '2,134', label: 'clients supported', detail: '', order: 2 },
   ];
   for (const stat of statistics) {
     await prisma.statistic.create({ data: stat });
@@ -87,12 +101,12 @@ async function main() {
     update: {},
     create: {
       id: 'default',
-      scriptTitle: 'Welcome',
-      heading: 'You do not have to carry your heavy mental burdens entirely on your own.',
-      paragraph1: 'Maybe it is a heavy drop in mood that won\'t lift, anxiety that holds you hostage at school or work, traumatic memories that replay, or a habit that\'s slowly taking control of your daily decisions. From the outside, you look successful. From the inside, running this routine is exhausting.',
-      paragraph2: 'I am <strong class="text-[#1C4751] font-medium">Tania Subhashita</strong>, a licensed mental health professional based in Dhaka. I offer a warm, strictly confidential, and unvarnished safe space where you can let down your guard, systematically study what hurts, and introduce evidence-based steps to rebuild.',
+      scriptTitle: 'Psychologist in Dhaka & online',
+      heading: 'You do not have to carry it on your own.',
+      paragraph1: "Maybe it's a low mood that won't lift, anxiety that holds you hostage at school or work, memories that keep replaying, or a habit that is slowly taking over your decisions. From the outside, you look fine. From the inside, keeping it up is exhausting.",
+      paragraph2: 'I am <strong>Tania Subhashita</strong>, a psychologist in New Eskaton, Dhaka. I work with adolescents, adults, couples and families, in person and online. I offer a warm, strictly confidential space where you can let your guard down, look carefully at what hurts, and take evidence-based steps to rebuild.',
       credentialName: 'Tania Subhashita',
-      credentialTitle: 'Psychologist &amp; Clinical Psycho-Social Counselor. Bachelor\'s &amp; Master\'s in Psychology, Professional Master\'s in Clinical Social Work (University of Dhaka).',
+      credentialTitle: "Psychologist &amp; Clinical Psycho-Social Counselor. Bachelor's &amp; Master's in Psychology, Professional Master's in Clinical Social Work (University of Dhaka).",
       portraitImageUrl: '/images/warm-editorial-portrait-in-mauve-saree.png',
     },
   });
@@ -105,8 +119,8 @@ async function main() {
     create: {
       id: 'default',
       scriptTitle: 'At your own pace',
-      quote: '\u201cI look beyond the surface level symptoms to heal the actual biological and environment roots — so that the recovery stays secure. Every single dialogue is a safe sanctuary, free from judgment, and bound by absolute clinical confidentiality.\u201d',
-      attribution: '— Tania Subhashita, Clinical Psychologist',
+      quote: '“I look beyond surface symptoms to the roots underneath, so that recovery holds. Every conversation is free from judgement and bound by complete confidentiality.”',
+      attribution: '— Tania Subhashita',
     },
   });
   console.log('✅ Methodology quote created');
@@ -117,95 +131,98 @@ async function main() {
     update: {},
     create: {
       id: 'default',
-      heading: 'Wherever you represent yourself right now, you do not have to stay trapped there.',
-      subtitle: 'The subsequent chapter of your life can start this evening. Reclaim control with zero pressure.',
-      scriptTitle: 'Begin your emotional journey',
-      buttonText: 'Schedule Consultation',
+      heading: "Wherever you are right now, you don't have to stay there.",
+      subtitle: 'The next chapter can start with one unhurried conversation, with no pressure to continue.',
+      scriptTitle: 'Begin when you are ready',
+      buttonText: 'Book a free consult',
     },
   });
   console.log('✅ CTA section created');
 
   // ─── Services (all 26) ──────────────────────────────────────────────────────
+  // Names use the words people search for; slugs never change. Categories keep the DB spelling
+  // the site's area labels are keyed on (client/site/therapies/therapyData.ts).
   const services = [
-    { slug: 'psychotherapy', name: 'Psychotherapy', description: 'An in-depth therapeutic process to help you understand and resolve emotional and mental health challenges, fostering long-term well-being.', category: 'Self & Relationships', iconName: 'Brain', order: 0 },
-    { slug: 'depression', name: 'Depression Support', description: 'Support and therapeutic guidance to help you navigate feelings of sadness, hopelessness, and loss of interest, paving the way for a more positive outlook.', category: 'Mood & Emotion', iconName: 'Heart', order: 1 },
-    { slug: 'anxiety-disorder', name: 'Anxiety Disorder', description: 'Effective strategies and tools to manage and reduce feelings of worry, fear, and panic, helping you regain a sense of calm and control.', category: 'Mood & Emotion', iconName: 'ShieldAlert', order: 2 },
-    { slug: 'personality-disorder', name: 'Personality Disorder', description: 'Specialized therapy to help you understand and manage persistent thought and behavior patterns that cause distress and impact relationships.', category: 'Specialized Care', iconName: 'Fingerprint', order: 3 },
-    { slug: 'ocd', name: 'OCD (Obsessive-Compulsive)', description: 'Therapy focused on breaking the cycle of obsessive thoughts and compulsive behaviors to help you reclaim your life.', category: 'Specialized Care', iconName: 'Activity', order: 4 },
-    { slug: 'drug-addiction', name: 'Drug Addiction', description: 'Compassionate support and structured therapy to help you overcome substance dependency and build a healthy, sober life.', category: 'Addiction & Behavior', iconName: 'Sparkles', order: 5 },
-    { slug: 'behavioral-addiction', name: 'Porn, Gambling, Sex & Device Addiction', description: 'Targeted counseling to help you understand the root causes of behavioral addictions and develop healthier habits and coping mechanisms.', category: 'Addiction & Behavior', iconName: 'SmartphoneOff', order: 6 },
-    { slug: 'bipolar-disorder', name: 'Bipolar Mood Disorder', description: 'Guidance and support to help you manage extreme mood swings, promoting stability and improving your quality of life.', category: 'Mood & Emotion', iconName: 'Sparkle', order: 7 },
-    { slug: 'trauma', name: 'Trauma (PTSD, ASD)', description: 'Healing-centered therapy to process and recover from traumatic experiences, helping you move forward from post-traumatic stress.', category: 'Specialized Care', iconName: 'FlameKindling', order: 8 },
-    { slug: 'online-counselling', name: 'Online Counselling', description: 'Convenient and secure therapy sessions offered remotely, providing access to professional support from the comfort of your home.', category: 'Specialized Care', iconName: 'Video', order: 9 },
-    { slug: 'suicidal-thought', name: 'Suicidal Thought Support', description: 'A safe, confidential space to discuss thoughts of self-harm, providing immediate support and creating a path toward hope and recovery.', category: 'Mood & Emotion', iconName: 'LifeBuoy', order: 10 },
-    { slug: 'panic-disorder', name: 'Panic Disorder & Phobia', description: 'Techniques to manage sudden episodes of intense fear and reduce the avoidance behaviors associated with specific fears and phobias.', category: 'Mood & Emotion', iconName: 'Wind', order: 11 },
-    { slug: 'exam-phobia', name: 'Exam Phobia Support', description: 'Specialized support for students to overcome overwhelming fear and anxiety related to exams, boosting confidence and performance.', category: 'Specialized Care', iconName: 'BookOpen', order: 12 },
-    { slug: 'grief-management', name: 'Grief Management', description: 'A compassionate approach to help you navigate the complex emotions of loss and find a way to heal and cope.', category: 'Mood & Emotion', iconName: 'CloudRain', order: 13 },
-    { slug: 'indecisiveness', name: 'Indecisiveness Care', description: 'Guidance to help you build confidence in your decision-making, reducing self-doubt and promoting clarity.', category: 'Self & Relationships', iconName: 'GitCommit', order: 14 },
-    { slug: 'couple-counselling', name: 'Couple Counselling', description: 'Joint sessions to improve communication, resolve conflicts, and strengthen the bond between partners.', category: 'Self & Relationships', iconName: 'Users', order: 15 },
-    { slug: 'guilt-feeling', name: 'Guilt Feeling Therapy', description: 'Therapy to help you process and release feelings of excessive guilt, fostering self-forgiveness and emotional freedom.', category: 'Mood & Emotion', iconName: 'Sunset', order: 16 },
-    { slug: 'stress-management', name: 'Stress Management', description: 'Effective techniques to cope with daily pressures and major life stressors, helping you find balance and inner peace.', category: 'Mood & Emotion', iconName: 'Smile', order: 17 },
-    { slug: 'sleep-disorder', name: 'Sleep Disorder Solution', description: 'Strategies and behavioral therapy to help you improve sleep patterns and achieve restful, restorative sleep.', category: 'Specialized Care', iconName: 'Moon', order: 18 },
-    { slug: 'odd', name: 'ODD (Oppositional Defiant)', description: 'Support for both children and parents to manage defiance and behavioral issues, improving family harmony.', category: 'Specialized Care', iconName: 'Baby', order: 19 },
-    { slug: 'anger-management', name: 'Anger Management', description: 'Therapeutic tools to help you understand the triggers of anger and develop healthy ways to express and control it.', category: 'Addiction & Behavior', iconName: 'Flame', order: 20 },
-    { slug: 'social-anxiety', name: 'Social Anxiety', description: 'Support to overcome fear and self-consciousness in social situations, empowering you to connect with others more comfortably.', category: 'Self & Relationships', iconName: 'Eye', order: 21 },
-    { slug: 'procrastination', name: 'Procrastination Therapy', description: 'Therapy to help you understand and overcome the reasons behind procrastination, improving productivity and reducing stress.', category: 'Addiction & Behavior', iconName: 'Clock', order: 22 },
-    { slug: 'familiar-disharmony', name: 'Familiar Disharmony', description: 'Mediation and counseling to address conflicts within the family, promoting understanding and resolving disputes.', category: 'Self & Relationships', iconName: 'Home', order: 23 },
-    { slug: 'behavioral-therapy', name: 'Behavioral Therapy', description: 'A goal-oriented approach to identify and change problematic behaviors, focusing on practical solutions.', category: 'Addiction & Behavior', iconName: 'Compass', order: 24 },
-    { slug: 'social-skill', name: 'Social Skill Management', description: 'Guidance to help you develop the confidence and skills needed to navigate social interactions and build meaningful connections.', category: 'Self & Relationships', iconName: 'Award', order: 25 },
+    { slug: 'psychotherapy', name: 'Psychotherapy', description: 'Regular one-to-one sessions to understand and work through emotional and mental health difficulties, aiming for change that lasts.', category: 'Self & Relationships', iconName: 'Brain', order: 0 },
+    { slug: 'depression', name: 'Depression Counselling', description: 'Support for low mood, hopelessness and loss of interest: understanding what keeps it going, and taking steady, practical steps back towards what matters to you.', category: 'Mood & Emotion', iconName: 'Heart', order: 1 },
+    { slug: 'anxiety-disorder', name: 'Anxiety Therapy', description: 'Practical tools for worry, fear and the physical tension of anxiety, using approaches such as CBT, so you can feel calmer and more in control.', category: 'Mood & Emotion', iconName: 'ShieldAlert', order: 2 },
+    { slug: 'personality-disorder', name: 'Personality Disorder Support', description: 'Therapy for long-standing patterns of thinking, feeling and relating that cause distress, including skills from dialectical behaviour therapy (DBT).', category: 'Specialized Care', iconName: 'Fingerprint', order: 3 },
+    { slug: 'ocd', name: 'OCD Therapy', description: 'Therapy to loosen the cycle of obsessive thoughts and compulsive behaviours, using cognitive behavioural therapy (CBT).', category: 'Specialized Care', iconName: 'Activity', order: 4 },
+    { slug: 'drug-addiction', name: 'Drug Addiction Counselling', description: 'Structured, compassionate counselling for substance use: understanding triggers, preventing relapse and rebuilding daily life, alongside medical care where withdrawal needs it.', category: 'Addiction & Behavior', iconName: 'Sparkles', order: 5 },
+    { slug: 'behavioral-addiction', name: 'Porn, Gambling, Sex & Device Addiction', description: 'Counselling for compulsive habits such as pornography, gambling, sex or screen use: understanding what drives them and building healthier routines.', category: 'Addiction & Behavior', iconName: 'SmartphoneOff', order: 6 },
+    { slug: 'bipolar-disorder', name: 'Bipolar Disorder Support', description: 'Psychological support alongside psychiatric care: understanding mood episodes, noticing early warning signs and building routines that support stability.', category: 'Mood & Emotion', iconName: 'Sparkle', order: 7 },
+    { slug: 'trauma', name: 'Trauma & PTSD Therapy', description: 'Trauma-focused therapy, including EMDR, for post-traumatic stress and acute stress after frightening or painful experiences.', category: 'Specialized Care', iconName: 'FlameKindling', order: 8 },
+    { slug: 'online-counselling', name: 'Online Counselling', description: 'Therapy sessions by Zoom or Google Meet from anywhere in Bangladesh, with the same confidentiality as meeting in person.', category: 'Specialized Care', iconName: 'Video', order: 9 },
+    { slug: 'suicidal-thought', name: 'Suicidal Thought Support', description: 'A safe, confidential space to talk about thoughts of ending your life or harming yourself, and to plan steps towards safety and hope. This is not an emergency service: if you are in danger, call 999.', category: 'Mood & Emotion', iconName: 'LifeBuoy', order: 10 },
+    { slug: 'panic-disorder', name: 'Panic Disorder & Phobia', description: 'Techniques for sudden waves of intense fear, and a gradual, agreed plan to face the places and situations you have started to avoid.', category: 'Mood & Emotion', iconName: 'Wind', order: 11 },
+    { slug: 'exam-phobia', name: 'Exam Anxiety & Exam Phobia', description: 'Support for students facing overwhelming fear before or during exams, with calming techniques and confidence-building steps.', category: 'Specialized Care', iconName: 'BookOpen', order: 12 },
+    { slug: 'grief-management', name: 'Grief Counselling', description: 'Space to work through the complicated feelings that follow a loss, at your own pace, and to find ways to carry it.', category: 'Mood & Emotion', iconName: 'CloudRain', order: 13 },
+    { slug: 'indecisiveness', name: 'Indecisiveness & Self-Doubt', description: 'Help with overthinking and second-guessing, so decisions feel clearer and you trust your own judgement more.', category: 'Self & Relationships', iconName: 'GitCommit', order: 14 },
+    { slug: 'couple-counselling', name: 'Couple Counselling', description: 'Joint sessions for partners to improve communication, work through conflict and rebuild trust.', category: 'Self & Relationships', iconName: 'Users', order: 15 },
+    { slug: 'guilt-feeling', name: 'Persistent Guilt', description: 'Therapy for guilt that will not let go: understanding where it comes from, and moving towards self-forgiveness.', category: 'Mood & Emotion', iconName: 'Sunset', order: 16 },
+    { slug: 'stress-management', name: 'Stress Management', description: 'Ways to cope with daily pressure and major life changes, and to recover a sense of balance.', category: 'Mood & Emotion', iconName: 'Smile', order: 17 },
+    { slug: 'sleep-disorder', name: 'Sleep Difficulties', description: 'Behavioural strategies for trouble falling or staying asleep, and for the worries that keep you awake.', category: 'Specialized Care', iconName: 'Moon', order: 18 },
+    { slug: 'odd', name: 'ODD: Child & Parent Support', description: 'Support for children with oppositional or defiant behaviour, and for their parents, to bring more calm and cooperation at home.', category: 'Specialized Care', iconName: 'Baby', order: 19 },
+    { slug: 'anger-management', name: 'Anger Management', description: 'Understanding what triggers your anger, and learning healthier ways to express and manage it.', category: 'Addiction & Behavior', iconName: 'Flame', order: 20 },
+    { slug: 'social-anxiety', name: 'Social Anxiety', description: 'Support with fear and self-consciousness in social situations, so you can connect with people more comfortably.', category: 'Self & Relationships', iconName: 'Eye', order: 21 },
+    { slug: 'procrastination', name: 'Procrastination', description: 'Understanding the feelings behind putting things off, and practical steps to start and finish what matters.', category: 'Addiction & Behavior', iconName: 'Clock', order: 22 },
+    { slug: 'familiar-disharmony', name: 'Family Counselling', description: 'Sessions with family members to reduce conflict, improve communication and understand one another, drawing on systemic family therapy.', category: 'Self & Relationships', iconName: 'Home', order: 23 },
+    { slug: 'behavioral-therapy', name: 'Behavioural Therapy', description: 'A goal-focused approach to identify and change specific behaviours, with practical steps you practise between sessions.', category: 'Addiction & Behavior', iconName: 'Compass', order: 24 },
+    { slug: 'social-skill', name: 'Social Skills', description: 'Building confidence and practical skills for conversations, friendships and working relationships.', category: 'Self & Relationships', iconName: 'Award', order: 25 },
   ];
   for (const service of services) {
-    await prisma.service.create({ data: service });
+    await prisma.service.create({ data: { ...service, ...SERVICE_DETAILS[service.slug] } });
   }
   console.log('✅ Services created (' + services.length + ')');
 
   // ─── Programs ────────────────────────────────────────────────────────────────
+  // Not on the previous site; see "Needs Tania's confirmation" in the doc.
   const programs = [
     {
       slug: 'anxiety-panic',
-      title: 'Anxiety & Panic Liberation Program',
-      subtitle: '8-Week Guided Coping & Recovery Journey',
-      duration: '8 Weekly Sessions (In-person or Online)',
-      description: 'A highly systemized program designed to dismantle panic attacks, quiet generalized anxiety, and arm you with concrete relaxation and somatic regulation tools.',
+      title: 'Anxiety & Panic Program',
+      subtitle: 'Eight weeks of guided support for panic and persistent worry',
+      duration: '8 weekly sessions, in person or online',
+      description: 'A structured eight-week program for panic attacks and persistent worry, combining CBT with practical, body-based calming skills.',
       details: [
-        'Diagnostic and triggers mapping assessment',
-        'Somatic nervous system soothing exercises (Box Breathing, vagus nerve stimulation)',
-        'Cognitive Restructuring sheets and thought records',
-        'Gradual safe exposure hierarchy planning',
-        'Relapse prevention protocol manual',
+        'An assessment that maps your triggers',
+        'Calming skills such as slow, paced breathing',
+        'Thought records and other CBT tools',
+        'A gradual, agreed plan for facing what you avoid',
+        'A written plan for setbacks to keep afterwards',
       ],
-      suitability: 'Highly suitable for individuals experiencing sudden panic, social self-consciousness, or persistent worry.',
+      suitability: 'People living with panic attacks, social self-consciousness or persistent worry.',
       order: 0,
     },
     {
       slug: 'addiction-reset',
-      title: 'Addictive Behavior Reset & Rebuild',
-      subtitle: '12-Week Comprehensive Recovery Program',
-      duration: '12 Weekly Sessions + Bi-weekly support calls',
-      description: 'Compassionate, structured therapeutic guidance targeting chemical or behavioral habits (substances, gambling, digital overconsumption, porn or sex addiction).',
+      title: 'Addictive Behaviour Recovery Program',
+      subtitle: 'Twelve weeks of structured support for substances and compulsive habits',
+      duration: '12 weekly sessions, with fortnightly support calls',
+      description: 'A structured twelve-week program for substance use or behavioural habits such as gambling, pornography, sex or excessive screen use.',
       details: [
-        'Trigger mapping and dopamine curve analysis',
-        'Designing highly resilient positive replacement routines',
-        'Underlying sadness or anxiety treatment focus',
-        'Compulsion-urge surfing techniques',
-        'Accountability milestones setup',
+        'Mapping the triggers and situations behind the habit',
+        'Building replacement routines that fit your life',
+        'Working on the low mood or anxiety underneath',
+        'Urge-surfing and other skills for cravings',
+        'Milestones you agree and review together',
       ],
-      suitability: 'Suitable for anyone desiring to regain absolute autonomy from persistent, unwanted habits.',
+      suitability: 'Anyone who wants to regain control from a persistent, unwanted habit.',
       order: 1,
     },
     {
       slug: 'student-peak-mind',
-      title: 'Student Peak Confidence Program',
-      subtitle: '4-Week Exam Phobia & Procrastination Breakthrough',
-      duration: '4 Staged Weekly Sessions',
-      description: 'Designed specifically for students and young scholars struggling with debilitating exam tension, performance blockages, or chronic study delay.',
+      title: 'Exam Anxiety Program for Students',
+      subtitle: 'Four weeks for exam fear and putting off study',
+      duration: '4 weekly sessions, in person or online',
+      description: 'For school, college and university students struggling with exam fear, performance blocks or putting off study.',
       details: [
-        'Overcoming perfectionism and fear-of-failure cycles',
-        'Interactive focus flow schedules and study warm-ups',
-        'Anxiety calming techniques for use inside the examination hall',
-        'Confidence anchoring and mindfulness strategies',
+        'Easing perfectionism and fear of failure',
+        'Study schedules and warm-up routines',
+        'Calming techniques to use in the exam hall',
+        'Confidence-building and mindfulness practice',
       ],
-      suitability: 'Highly suitable for school, college, or university students preparing for pivotal tests.',
+      suitability: 'Students preparing for important exams.',
       order: 2,
     },
   ];
@@ -215,94 +232,27 @@ async function main() {
   console.log('✅ Programs created (' + programs.length + ')');
 
   // ─── Blog Posts ──────────────────────────────────────────────────────────────
-  const blogPosts = [
-    {
-      slug: 'cbt-steps',
-      title: 'Understanding CBT: How to Rewrite Negative Thought Patterns',
-      date: 'June 12, 2026',
-      category: 'Psychotherapy',
-      summary: 'Cognitive Behavioral Therapy (CBT) is one of the most effective tools for treating depression and anxiety. Discover the practical step-by-step methods you can run daily.',
-      readTime: '5 min read',
-      content: `Negative thought patterns, also known as cognitive distortions, can make us feel trapped in anxiety and distress. Cognitive Behavioral Therapy (CBT) provides an empirical, structured framework to identify and challenge these patterns.
-
-### 1. Identifying the "Hot Thought"
-The first step is noticing when your mood shifts. What did you say to yourself in that exact moment? Examples include "I always fail at everything" or "Everyone is judging me."
-
-### 2. Gathering Evidence
-In CBT, we act as scientists. We write down two columns:
-- **Evidence that supports the thought**: Facts, actual occurrences.
-- **Evidence that counteracts the thought**: Overlooked victories, alternative circumstances.
-
-### 3. Creating an Alternative Perspective
-By evaluating the evidence objectively, you can craft a balanced view. Instead of "I am totally useless," a balanced alternative is "I made a single mistake in this assignment, but I have completed many other assignments successfully in the past."
-
-This unhurried practice helps lower the immediate fight-or-flight stress. Reach out today to see how CBT can support you.`,
-      order: 0,
-    },
-    {
-      slug: 'overcome-procrastination',
-      title: 'Procrastination and Emotional Regulation: Why We Avoid Tasks',
-      date: 'May 28, 2026',
-      category: 'Behavioral Therapy',
-      summary: 'Procrastination is rarely a time-management failure; it\'s a way of biological stress avoidance. Let\'s look at the emotional causes and how to heal.',
-      readTime: '7 min read',
-      content: `Many people view procrastination as laziness or a personal failure. In modern psychology, however, procrastination is recognized as a coping mechanism for negative emotions associated with specific tasks—such as boredom, anxiety, insecurity, self-doubt, or frustration.
-
-### The Cycle of Avoidance
-1. **Immediate Threat**: You see a task that makes you anxious (e.g. studying, submitting a critical report).
-2. **Brain Hijack**: The amygdala perceives this anxiety as a physical threat.
-3. **Avoidance Choice**: You clean your room, browse devices, or do minor tasks to get immediate dopamine relief.
-4. **Guilt Cycle**: The task remains, now seasoned with added guilt and reduced self-worth, making you even *more* anxious next time.
-
-### Breaking the Loop
-- **The 2-Minute Warmup**: Commit to sitting and writing *just* for two minutes. Often, the friction lies only at the point of starting.
-- **Self-Compassion**: Forgive yourself for previous procrastination. Studies show that self-forgiving students procrastinate far less on subsequent tests because they carry less emotional baggage.
-- **Micro-tasks**: Break down the objective into incredibly small, non-scary steps.
-
-Our custom behavioral therapy plans focus on rebuilding this mental stamina.`,
-      order: 1,
-    },
-    {
-      slug: 'trauma-healing',
-      title: 'Healing Trauma: What is EMDR and How Does it Function?',
-      date: 'April 15, 2026',
-      category: 'Specialized Care',
-      summary: 'Trauma and PTSD can leave our nervous system permanently on high alert. Eye Movement Desensitization and Reprocessing (EMDR) offers a targeted way back.',
-      readTime: '8 min read',
-      content: `When a traumatic event occurs, the brain struggle to process it normally. Instead, the sights, physical sounds, and panic of the trauma remain raw and stuck in their original neurological state. EMDR therapy helps desensitize these memory networks.
-
-### Bilateral Stimulation
-By utilizing rapid eye movements, hand taps, or audio tones, we alternate brain activity between the left and right hemispheres. This mimics the natural integration processes of REM sleep.
-
-### Resolving the Pain
-Over several sessions, the emotional intensity of the traumatic memory decreases. You will always remember what occurred, but the painful physiological panic of PTSD—the shaking, chest tightness, and sudden flash flashbacks—subside.
-
-You do not have to carry the heavy burden of trauma alone.`,
-      order: 2,
-    },
-  ];
+  // Drafted for review: saved unpublished, published from the admin once Tania has read them.
+  const blogPosts = JOURNAL_DRAFTS.map((post, order) => ({ ...post, published: false, order }));
   for (const post of blogPosts) {
     await prisma.blogPost.create({ data: post });
   }
   console.log('✅ Blog posts created (' + blogPosts.length + ')');
 
   // ─── Testimonials ────────────────────────────────────────────────────────────
-  const testimonials = [
-    { name: 'Sarah Jenkins', gender: 'female', text: "Tania provided me with the most safe and comfortable space I've ever experienced in therapy. I truly feel heard.", role: 'Client since 2021', order: 0 },
-    { name: 'Michael R.', gender: 'male', text: 'Her approach is deeply empathetic. I was able to work through years of hidden trauma at my own pace.', role: 'Client since 2022', order: 1 },
-    { name: 'Emily W.', gender: 'female', text: 'The perfect balance of professionalism and human connection. I highly recommend her services to anyone seeking true healing.', role: 'Client since 2023', order: 2 },
-  ];
-  for (const testimonial of testimonials) {
-    await prisma.testimonial.create({ data: testimonial });
-  }
-  console.log('✅ Testimonials created (' + testimonials.length + ')');
+  // None: the previous site had no client quotes, and invented ones are not published.
+  // Add real ones in the admin, with written consent and no names, initials or dates.
+  console.log('✅ Testimonials: none seeded (add real, consented quotes in the admin)');
 
   // ─── FAQs ────────────────────────────────────────────────────────────────────
   const faqs = [
-    { question: 'What should I expect during the first session?', answer: "The first session is an initial consultation where we will discuss your background, what brings you to therapy, and your goals. It's a space for us to get to know each other and determine if we are a good fit for working together.", order: 0 },
-    { question: 'How much do sessions cost and do you take insurance?', answer: "Individual therapy sessions are $150 per 60-minute hour. Currently, I am an out-of-network provider, which means I do not directly bill insurance. However, I can provide you with a 'superbill' that you can submit to your insurance company for potential reimbursement.", order: 1 },
-    { question: 'Is what I share in therapy confidential?', answer: 'Yes, confidentiality is a cornerstone of the therapeutic relationship. Everything discussed in our sessions is legally and ethically confidential, with a few crucial exceptions relating to safety (such as risk of harm to yourself or others).', order: 2 },
-    { question: 'How long does a typical therapy session last?', answer: 'A standard therapy session lasts for 60 minutes. EMDR sessions can sometimes be scheduled for 90 minutes depending on your specific needs and treatment plan.', order: 3 },
+    { question: 'What should I expect in the first session?', answer: "The first session is an initial consultation. We'll talk about your background, what brings you to therapy and what you'd like to change. It's a space for us to get to know each other and decide together whether we're a good fit. The first 20 minutes are free.", order: 0 },
+    { question: 'Is what I share confidential?', answer: 'Yes. Confidentiality is the cornerstone of therapy. Everything we discuss stays confidential, with a few important exceptions relating to safety, such as a risk of serious harm to yourself or others.', order: 1 },
+    { question: 'How long is a session?', answer: 'A standard session lasts 60 minutes. EMDR sessions can sometimes run to 90 minutes, depending on your needs and treatment plan.', order: 2 },
+    { question: 'Do you offer online counselling outside Dhaka?', answer: 'Yes. Sessions run over Zoom or Google Meet, so you can join from anywhere in Bangladesh. Research suggests video sessions work about as well as meeting in person for common difficulties such as anxiety and depression.', order: 3 },
+    { question: 'Where is your chamber in Dhaka?', answer: `MIND CARE, ${CHAMBER_ADDRESS}. Sessions are by appointment, between 10:00 am and 8:00 pm.`, order: 4 },
+    { question: 'Do you see adolescents, couples and families?', answer: 'Yes. I work with adolescents, adults, couples and families, in person in New Eskaton and online.', order: 5 },
+    { question: 'Is this an emergency service?', answer: 'No. If you are in danger, call 999 or go to the nearest hospital emergency department. The Kaan Pete Roi emotional support helpline is on 09612-119911, 3 pm – 3 am every day.', order: 6 },
   ];
   for (const faq of faqs) {
     await prisma.fAQ.create({ data: faq });
@@ -311,10 +261,10 @@ You do not have to carry the heavy burden of trauma alone.`,
 
   // ─── Gallery Images ──────────────────────────────────────────────────────────
   const galleryImages = [
-    { url: '/images/gallery-training-group.jpeg', altText: 'Tania Subhashita with fellow participants at a professional training session', order: 0 },
-    { url: '/images/gallery-sfsc-certificate.jpeg', altText: 'Tania Subhashita receiving her Strengthening Families, Strengthening Communities (SFSC) parenting programme certificate', order: 1 },
-    { url: '/images/gallery-advanced-therapeutic-workshop.jpeg', altText: 'Tania Subhashita receiving her certificate from the Advanced Therapeutic Mental Health Workshop', order: 2 },
-    { url: '/images/gallery-clinical-psychology-conference.jpeg', altText: 'Tania Subhashita with Prof. Jobeda Khatun at the 6th Bangladesh Clinical Psychology Conference, University of Dhaka', order: 3 },
+    { url: '/images/gallery-clinical-psychology-conference.jpeg', altText: 'Tania Subhashita with Prof. Jobeda Khatun at the 6th Bangladesh Clinical Psychology Conference, University of Dhaka', order: 0 },
+    { url: '/images/gallery-training-group.jpeg', altText: 'Tania Subhashita with fellow participants at a professional training session', order: 1 },
+    { url: '/images/gallery-sfsc-certificate.jpeg', altText: 'Tania Subhashita receiving her Strengthening Families, Strengthening Communities (SFSC) parenting programme certificate', order: 2 },
+    { url: '/images/gallery-advanced-therapeutic-workshop.jpeg', altText: 'Tania Subhashita receiving her Advanced Therapeutic Mental Health Workshop certificate', order: 3 },
     { url: '/images/gallery-moonflower-autism-foundation.jpeg', altText: 'Tania Subhashita with Mofijul Islam, Executive Director of Moonflower Autism Foundation', order: 4 },
   ];
   for (const image of galleryImages) {
@@ -329,11 +279,11 @@ You do not have to carry the heavy burden of trauma alone.`,
     create: {
       id: 'default',
       clinicName: 'MIND CARE',
-      address: 'Aktar Mansion, House 30, Flat 1/A, Ismail Lane, New Eskaton, Dhaka 1000',
+      address: CHAMBER_ADDRESS,
       city: 'Dhaka',
       phone: '+880 1580 700 700',
       email: 'tr.subhashita@gmail.com',
-      officeHours: '10:00 AM to 8:00 PM',
+      officeHours: '10:00 am – 8:00 pm',
       mapEmbedUrl: '',
     },
   });
@@ -345,13 +295,13 @@ You do not have to carry the heavy burden of trauma alone.`,
     update: {},
     create: {
       id: 'default',
-      tagline: 'Professional Bio',
+      tagline: 'About',
       heading: 'Meet Tania Subhashita',
-      bio1: "Tania Subhashita is a psychologist and mental health professional dedicated to promoting emotional wellbeing and psychological resilience. She holds Honours and Master's degrees in Psychology, along with a Professional Master's degree in Clinical Social Work from the Institute of Social Welfare and Research, <strong class=\"text-[#1C4751]\">University of Dhaka</strong>. She is also an experienced meditation practitioner who integrates mindfulness techniques into her therapeutic work.",
-      bio2: "Throughout her career, she has worked with numerous psychiatric clinics and rehabilitation centres across Dhaka, providing psychological assessment, psychotherapy, and addiction recovery support. Her areas of expertise include psychiatric conditions, substance use disorders, emotional dysregulation, and family relationship challenges. Beyond clinical practice, she is an active advocate for mental health awareness, organising workshops, awareness programmes, and educational sessions in Dhaka and beyond, and sharing insights on mental health through podcasts, YouTube, and Facebook.",
+      bio1: "Tania Subhashita (Tania Rahman Subhashita) is a psychologist and clinical psycho-social counselor in Dhaka, dedicated to promoting emotional wellbeing and psychological resilience. She holds Honours and Master's degrees in Psychology, along with a Professional Master's degree in Clinical Social Work from the Institute of Social Welfare and Research, University of Dhaka. She works with adolescents, adults, couples and families, and is an experienced meditation practitioner who brings mindfulness into her therapeutic work.",
+      bio2: 'Throughout her career, she has worked with numerous psychiatric clinics and rehabilitation centres across Dhaka, providing psychological assessment, psychotherapy, and addiction recovery support. Her areas of expertise include psychiatric conditions, substance use disorders, emotional dysregulation, and family relationship challenges. Beyond clinical practice, she organises workshops, awareness programmes and educational sessions in Dhaka and beyond, and shares insights on mental health through podcasts, YouTube and Facebook.',
       quote: 'My approach is compassionate, personalized, and focused on meaningful progress.',
-      location: 'Dhaka & Online',
-      experience: '10+ Years clinical focus',
+      location: 'MIND CARE, New Eskaton, Dhaka, and online',
+      experience: 'Psychiatric clinics and rehabilitation centres across Dhaka',
       portraitImageUrl: '/images/warm-editorial-portrait-in-mauve-saree.png',
     },
   });
@@ -378,9 +328,9 @@ You do not have to carry the heavy burden of trauma alone.`,
 
   // ─── Methodology Steps ───────────────────────────────────────────────────────
   const methodologySteps = [
-    { stepNumber: '01/', title: 'Empathetic Grounding', description: 'We start by establishing a safe container. Your trauma, chemical battles, shame, or grief is handled with absolute confidentiality and infinite human patience.', order: 0 },
-    { stepNumber: '02/', title: 'Tailored Re-Patterning', description: 'Instead of standard cookie-cutter advice, we build a personalized recovery schema. We map your specific cognitive distortions and utilize clinical worksheets to dismantle them.', order: 1 },
-    { stepNumber: '03/', title: 'Autonomous Sovereignty', description: 'The goal of therapy is for you to eventually become your own therapist. We secure relapse protocols so that you feel fully confident self-regulating through all future storms.', order: 2 },
+    { stepNumber: '01', title: 'A safe place to start', description: 'We begin by building trust. Whatever you bring — trauma, a habit, shame or grief — is held with patience and complete confidentiality.', order: 0 },
+    { stepNumber: '02', title: 'A plan made for you', description: 'No cookie-cutter advice. Together we map the thinking patterns that keep you stuck, and use proven tools like CBT to loosen them.', order: 1 },
+    { stepNumber: '03', title: 'Steady on your own', description: 'The aim is for you to become your own therapist, with a clear plan for the harder days so you feel confident handling them.', order: 2 },
   ];
   for (const step of methodologySteps) {
     await prisma.methodologyStep.create({ data: step });
@@ -389,12 +339,12 @@ You do not have to carry the heavy burden of trauma alone.`,
 
   // ─── Assessment Questions ────────────────────────────────────────────────────
   const assessmentQuestions = [
-    { text: 'I find myself lying awake for long periods due to running loops of stressful thoughts or future worries.', order: 0 },
-    { text: 'I feel unusually defensive, angry, or prone to sudden irritability with friends or coworkers.', order: 1 },
-    { text: 'I run to devices, gambling, food, or other quick cravings to escape heavy real-life pressures.', order: 2 },
-    { text: 'Anxiety and fear have forced me to avoid specific social situations, speaking up, or attending exams.', order: 3 },
-    { text: 'I struggle to make simple choices, regularly trapped in a cycle of overthinking and mental paralysis.', order: 4 },
-    { text: 'I feel persistent exhaustion that sleep doesn\'t seem to cure, alongside a heaviness in my chest.', order: 5 },
+    { text: 'I lie awake for long periods with loops of stressful thoughts or worries about the future.', order: 0 },
+    { text: 'I feel unusually defensive, angry or quick to irritation with friends or coworkers.', order: 1 },
+    { text: 'I reach for devices, gambling, food or other quick escapes when real-life pressure builds.', order: 2 },
+    { text: 'Anxiety has made me avoid social situations, speaking up or sitting exams.', order: 3 },
+    { text: 'I struggle with simple choices, caught in cycles of overthinking.', order: 4 },
+    { text: "I feel an exhaustion that sleep doesn't fix, with a heaviness in my chest.", order: 5 },
   ];
   for (const q of assessmentQuestions) {
     await prisma.assessmentQuestion.create({ data: q });
@@ -403,9 +353,9 @@ You do not have to carry the heavy burden of trauma alone.`,
 
   // ─── Assessment Score Bands ──────────────────────────────────────────────────
   const scoreBands = [
-    { minScore: 0, maxScore: 1, emoji: '🌱', label: 'Subtle Tension', message: 'You are managing stress well, but there might be tiny pockets of unaddressed anxiety. Remember, taking counseling early acts as powerful preventative wellness.' },
-    { minScore: 2, maxScore: 3, emoji: '⚠️', label: 'Moderate Burnout Strain', message: 'You are carrying a heavy workload and emotional burden. Some coping methods are starting to show friction. A single 1-on-1 counseling consultation could provide breakthrough tools to release this pressure.' },
-    { minScore: 4, maxScore: 6, emoji: '🚨', label: 'High Strain Levels', message: 'You are wading through deep exhaustion or severe anxiety that is actively impacting personal relationships or sleep architecture. Please know that you do not have to struggle in silence. Placing yourself in safe hands can change everything.' },
+    { minScore: 0, maxScore: 1, emoji: '🌱', label: 'Subtle tension', message: 'You seem to be managing stress well, though there may be small pockets of unaddressed worry. Talking to someone early is a powerful form of prevention.' },
+    { minScore: 2, maxScore: 3, emoji: '🌿', label: 'Moderate strain', message: "You're carrying a heavy load, and some of your coping methods are starting to show friction. A single conversation can give you tools to release some of that pressure." },
+    { minScore: 4, maxScore: 6, emoji: '🤍', label: 'High strain', message: "You may be moving through deep exhaustion or anxiety that is affecting your sleep and relationships. You don't have to struggle in silence — reaching out can change a great deal." },
   ];
   for (const band of scoreBands) {
     await prisma.assessmentScoreBand.create({ data: band });

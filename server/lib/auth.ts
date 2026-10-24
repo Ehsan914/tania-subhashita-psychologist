@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { prisma } from './prisma.js';
+import { SITE_ORIGINS } from './hosting.js';
 
 const MIN_SECRET_LENGTH = 32;
 const secret = process.env.BETTER_AUTH_SECRET;
@@ -20,7 +21,7 @@ export const auth = betterAuth({
   // The public origin of the site; in production /api is proxied through it.
   baseURL: process.env.APP_URL,
   basePath: '/api/auth',
-  trustedOrigins: ['http://localhost:3000', 'http://localhost:5173', process.env.APP_URL ?? ''].filter(Boolean),
+  trustedOrigins: SITE_ORIGINS,
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: {
     enabled: true,

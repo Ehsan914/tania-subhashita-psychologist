@@ -7,9 +7,10 @@ import { toNodeHandler } from 'better-auth/node';
 import { auth, CLIENT_IP_HEADER } from './lib/auth.js';
 import apiRoutes from './routes/api.js';
 import adminRoutes from './routes/admin.js';
+import { rebuildOnContentChange, buildSite } from './middleware/rebuild.js';
+import { HOST_SITE, PORT, SITE_ORIGINS } from './lib/hosting.js';
 
 const app = express();
-const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const IS_PROD = process.env.NODE_ENV === 'production';
 
@@ -17,13 +18,9 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 if (IS_PROD && !process.env.APP_URL) {
   console.warn('⚠️  APP_URL is not set — admin sign-in will reject the site origin!');
 }
-
-// ─── Allowed Origins ───────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  process.env.APP_URL?.replace(/\/+$/, ''),
-].filter(Boolean) as string[];
+if (IS_PROD && !process.env.VERCEL_DEPLOY_HOOK_URL) {
+  console.warn('⚠️  VERCEL_DEPLOY_HOOK_URL is not set — admin edits will not reach the public pages until the next deploy!');
+}
 
 // ─── Middleware ─────────────────────────────────────────────────────────────────
 app.use(cors({
@@ -31,7 +28,7 @@ app.use(cors({
     // Allow requests with no origin (e.g. mobile apps, curl, Postman)
     if (!origin) return cb(null, true);
 
-    if (ALLOWED_ORIGINS.includes(origin)) {
+    if (SITE_ORIGINS.includes(origin)) {
       cb(null, true);
     } else {
       console.warn(`CORS blocked: ${origin}`);
@@ -83,15 +80,35 @@ app.get('/health', (_req, res) => {
 
 // ─── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api', apiRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', rebuildOnContentChange, adminRoutes);
 
-// ─── Serve React client (development only) ─────────────────────────────────────
-// In production, Vercel serves the frontend — Railway is API-only.
-if (!IS_PROD) {
+// ─── Serve the built site (local hosting and development) ──────────────────────
+// In production, Vercel serves the frontend — Railway is API-only. Here client/dist is
+// served the way client/vercel.json has Vercel serve it: clean URLs (/about → about.html),
+// no trailing slash, /admin on the admin shell, and the prerendered 404 page.
+if (HOST_SITE || !IS_PROD) {
   const clientDist = path.join(__dirname, '..', 'client', 'dist');
-  app.use(express.static(clientDist));
-  app.get('/{*splat}', (_req, res) => {
-    res.sendFile(path.join(clientDist, 'index.html'));
+  const isApi = (p: string) => p === '/api' || p.startsWith('/api/') || p === '/health';
+
+  app.use(express.static(clientDist, { index: false, redirect: false }));
+  app.get(['/admin', '/admin/{*splat}'], (_req, res) => {
+    res.sendFile('app.html', { root: clientDist });
+  });
+  app.get('/{*splat}', (req, res, next) => {
+    if (isApi(req.path)) return next();
+    if (req.path.length > 1 && req.path.endsWith('/')) {
+      return res.redirect(308, req.path.replace(/\/+$/, '') || '/');
+    }
+    const page = req.path === '/' ? 'index' : req.path.slice(1);
+    res.sendFile(`${page}.html`, { root: clientDist }, (err) => {
+      if (err && !res.headersSent) next();
+    });
+  });
+  app.use((req, res, next) => {
+    if (isApi(req.path)) return next();
+    res.status(404).sendFile('404.html', { root: clientDist }, (err) => {
+      if (err && !res.headersSent) next();
+    });
   });
 }
 
@@ -117,8 +134,10 @@ app.listen(PORT, () => {
   console.log(`   Health:  http://localhost:${PORT}/health`);
   console.log(`   API:     http://localhost:${PORT}/api/*`);
   console.log(`   Auth:    http://localhost:${PORT}/api/auth/*`);
-  if (!IS_PROD) {
-    console.log(`   Client:  http://localhost:${PORT}/`);
+  if (HOST_SITE || !IS_PROD) {
+    console.log(`   Site:    http://localhost:${PORT}/`);
   }
-  console.log(`   Origins: ${ALLOWED_ORIGINS.join(', ')}\n`);
+  console.log(`   Origins: ${SITE_ORIGINS.join(', ')}\n`);
+  // A hosted site is built from the database as it is now; later admin edits rebuild it.
+  if (HOST_SITE) void buildSite();
 });

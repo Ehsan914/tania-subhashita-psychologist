@@ -50,8 +50,9 @@ router.get('/services', async (_req, res) => {
 });
 
 router.get('/services/:slug', async (req, res) => {
-  const service = await prisma.service.findUnique({
-    where: { slug: req.params.slug },
+  // hidden services stay hidden here too, as in the list above
+  const service = await prisma.service.findFirst({
+    where: { slug: req.params.slug, isActive: true },
   });
   if (!service) {
     res.status(404).json({ error: 'Service not found' });
@@ -79,8 +80,9 @@ router.get('/blog-posts', async (_req, res) => {
 });
 
 router.get('/blog-posts/:slug', async (req, res) => {
-  const post = await prisma.blogPost.findUnique({
-    where: { slug: req.params.slug },
+  // drafts are read in the admin panel only
+  const post = await prisma.blogPost.findFirst({
+    where: { slug: req.params.slug, published: true },
   });
   if (!post) {
     res.status(404).json({ error: 'Blog post not found' });

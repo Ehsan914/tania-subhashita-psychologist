@@ -9,11 +9,18 @@
   "scripts": {
     "dev": "tsx watch index.ts",
     "start": "tsx index.ts",
+    "host": "tsx index.ts --host-site",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:content": "tsx prisma/add-content.ts",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:setup": "npm run db:up && npm run db:migrate && npm run db:seed",
+    "db:studio": "prisma studio",
+    "sanity:export": "tsx prisma/export-sanity.ts",
+    "test": "tsx --test prisma/sanity/portableText.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
