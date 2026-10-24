@@ -5,12 +5,15 @@ import {BrandIcon, StudioLayout, theme} from './branding'
 import {schemaTypes, SINGLETONS} from './schemaTypes'
 import {structure} from './structure'
 
-const projectId = process.env.SANITY_STUDIO_PROJECT_ID
-if (!projectId) throw new Error('Set SANITY_STUDIO_PROJECT_ID in studio/.env (see .env.example)')
+// The project id is public (the site reads the same dataset without a token), so the build on
+// Vercel needs no studio/.env.
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'v75epg3m'
 
 export default defineConfig({
   name: 'default',
   title: 'Tania Subhashita',
+  // Served by the site at taniasubhashita.com/studio (see client/vercel.json).
+  basePath: '/studio',
   icon: BrandIcon,
   theme,
   projectId,

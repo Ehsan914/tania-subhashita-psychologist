@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build && vite build --ssr prerender.tsx --outDir dist-server && node dist-server/prerender.js",
+    "build:studio": "cd ../studio && npm ci && npx sanity build ../client/dist/studio --yes",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "test": "tsx --test \"tests/**/*.test.ts\""

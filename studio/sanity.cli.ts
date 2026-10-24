@@ -2,9 +2,9 @@ import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
-    projectId: process.env.SANITY_STUDIO_PROJECT_ID,
+    projectId: process.env.SANITY_STUDIO_PROJECT_ID || 'v75epg3m',
     dataset: process.env.SANITY_STUDIO_DATASET || 'production',
   },
-  // https://taniasubhashita.sanity.studio; also listed in the site's STUDIO_ORIGINS on Vercel
-  studioHost: 'taniasubhashita',
+  // The site serves the built Studio at /studio, so its assets are linked from there.
+  project: {basePath: '/studio'},
 })
