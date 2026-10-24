@@ -1,11 +1,12 @@
 // The Sanity project the site's content lives in. The dataset is public and read-only from
 // here, so no token is needed; the same code runs in the browser and in the prerender
-// (Node), where Vite has already replaced import.meta.env.
+// (Node), where Vite has already replaced import.meta.env. Plain Node (the tests) has no
+// import.meta.env at all, hence the ?.
 import { createImageUrlBuilder } from '@sanity/image-url';
 
 const SANITY_CONFIG = {
-  projectId: import.meta.env.VITE_SANITY_PROJECT_ID ?? 'v75epg3m',
-  dataset: import.meta.env.VITE_SANITY_DATASET ?? 'production',
+  projectId: import.meta.env?.VITE_SANITY_PROJECT_ID ?? 'v75epg3m',
+  dataset: import.meta.env?.VITE_SANITY_DATASET ?? 'production',
   apiVersion: '2026-01-01',
   useCdn: true,
   // drafts never reach the site

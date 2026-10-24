@@ -111,6 +111,7 @@ export interface BlogPostData {
   category: string;
   summary: string;
   body: RichText;
+  image?: SanityImage;
   _updatedAt: string;
 }
 
@@ -183,7 +184,7 @@ const SITE_QUERY = `{
   "faqs": *[_type == "faq" && isVisible != false] | order(orderRank){_id, question, answer},
   "posts": *[_type == "post"] | order(date desc){
     _id, title, "slug": slug.current, date, "category": coalesce(category, ""), summary,
-    "body": coalesce(body, []), _updatedAt
+    "body": coalesce(body, []), "image": image{asset, hotspot, crop, alt}, _updatedAt
   }
 }`;
 

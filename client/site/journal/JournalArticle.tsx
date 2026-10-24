@@ -6,6 +6,8 @@ import { SplitWords } from '../motion';
 import { PostBody } from './PostBody';
 import { PostMeta, PostRow, longDate, postImage } from './posts';
 
+const BANNER_WIDTH = 1800; // the full-width banner, sharp on wide and high-density screens
+
 // Health articles say who wrote them, and when they last changed if that was after publication.
 function Byline({ post }: { post: BlogPostData }) {
   const published = isoDate(post.date);
@@ -35,7 +37,7 @@ export function JournalArticle({ post, others }: { post: BlogPostData; others: B
           <h1 className="h1" data-reveal="split"><SplitWords>{post.title}</SplitWords></h1>
           <Byline post={post} />
         </header>
-        <div className="wrap"><figure className="banner" data-reveal="mask"><img src={postImage(post.slug)} alt="" /></figure></div>
+        <div className="wrap"><figure className="banner" data-reveal="mask"><img src={postImage(post, BANNER_WIDTH)} alt={post.image?.alt ?? ""} /></figure></div>
         <div className="wrap">
           <div className="body" data-reveal="rise"><PostBody body={post.body} /></div>
           <aside className="aside-cta" data-reveal="rise">

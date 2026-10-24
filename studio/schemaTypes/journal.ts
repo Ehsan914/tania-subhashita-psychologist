@@ -1,5 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {ComposeIcon} from '@sanity/icons/Compose'
+import {imageWithAlt} from './fields'
 
 // A post is public once published; an unpublished draft never reaches the site.
 export const post = defineType({
@@ -18,6 +19,7 @@ export const post = defineType({
       options: {source: 'title'},
       validation: (rule) => rule.required(),
     }),
+    imageWithAlt('image', 'At the top of the post, in the blog list and when the post is shared. Leave empty for a calm stock photo.'),
     defineField({name: 'date', title: 'Date', type: 'date', fieldset: 'details', validation: (rule) => rule.required()}),
     defineField({name: 'category', title: 'Category', type: 'string', fieldset: 'details'}),
     // The site now works out "N min read" from the post's word count. Kept, hidden, so posts that
@@ -35,7 +37,7 @@ export const post = defineType({
   ],
   orderings: [{title: 'Newest first', name: 'dateDesc', by: [{field: 'date', direction: 'desc'}]}],
   preview: {
-    select: {title: 'title', date: 'date', category: 'category'},
-    prepare: ({title, date, category}) => ({title, subtitle: [date, category].filter(Boolean).join(' · ')}),
+    select: {title: 'title', date: 'date', category: 'category', media: 'image'},
+    prepare: ({title, date, category, media}) => ({title, media, subtitle: [date, category].filter(Boolean).join(' · ')}),
   },
 })
