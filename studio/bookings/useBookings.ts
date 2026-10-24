@@ -1,14 +1,18 @@
-// The Bookings tool: loads the requests from the bookings function with the signed-in user's
-// Sanity token, and after every Confirm / Decline / Attended / No-show reloads from the Sheet
-// rather than guessing the result, so what Tania sees is always what the Sheet holds.
+// Loads the bookings from the bookings function with the signed-in user's Sanity token, and after
+// every Confirm / Decline / Attended / No-show reloads from the Sheet rather than guessing the
+// result, so what Tania sees is always what the Sheet holds. Shared by both tools.
 import {useToast} from '@sanity/ui/toast'
 import {useCallback, useEffect, useRef, useState} from 'react'
-import {useClient, useCurrentUser} from 'sanity'
+import {useClient} from 'sanity'
 import {ApiError, fetchBookings, setStatus, type Booking, type BookingsResponse, type NextStatus} from './api'
-import {BookingsView, type Busy} from './BookingsView'
 
 // The token this Studio session signed in with (sanity.config.ts sets loginMethod: 'token').
-const CLIENT_OPTIONS = {apiVersion: '2025-02-07'}
+export const CLIENT_OPTIONS = {apiVersion: '2025-02-07'}
+
+export interface Busy {
+  id: string
+  status: NextStatus
+}
 
 const DONE: Record<NextStatus, (name: string) => string> = {
   Confirmed: (name) => `${name}’s session is confirmed.`,
@@ -17,12 +21,14 @@ const DONE: Record<NextStatus, (name: string) => string> = {
   'No-show': (name) => `${name} is marked as a no-show.`,
 }
 
+// these mean the list can't be shown at all; anything else is about the one change
+const BLOCKING = new Set(['denied', 'token', 'config', 'not-connected'])
+
 const asApiError = (err: unknown) =>
   err instanceof ApiError ? err : new ApiError('server', 'Something went wrong. Try again in a moment.')
 
-export function BookingsTool() {
+export function useBookings() {
   const client = useClient(CLIENT_OPTIONS)
-  const user = useCurrentUser()
   const toast = useToast()
   const [data, setData] = useState<BookingsResponse>()
   const [error, setError] = useState<ApiError>()
@@ -54,7 +60,7 @@ export function BookingsTool() {
     void load()
   }, [load])
 
-  const onSetStatus = useCallback(
+  const changeStatus = useCallback(
     async (booking: Booking, status: NextStatus) => {
       setBusy({id: booking.id, status})
       try {
@@ -62,7 +68,7 @@ export function BookingsTool() {
         toast.push({status: 'success', title: DONE[status](booking.name || 'The client')})
       } catch (err) {
         const apiError = asApiError(err)
-        if (apiError.kind === 'denied' || apiError.kind === 'token' || apiError.kind === 'config' || apiError.kind === 'not-connected') setError(apiError)
+        if (BLOCKING.has(apiError.kind)) setError(apiError)
         else toast.push({status: 'error', title: 'Not changed', description: apiError.message})
       } finally {
         setBusy(undefined)
@@ -72,16 +78,5 @@ export function BookingsTool() {
     [load, toast, token],
   )
 
-  return (
-    <BookingsView
-      firstName={user?.name?.split(/\s+/)[0]}
-      userId={user?.id}
-      data={data}
-      error={error}
-      loading={loading}
-      busy={busy}
-      onRefresh={() => void load()}
-      onSetStatus={(booking, status) => void onSetStatus(booking, status)}
-    />
-  )
+  return {data, error, loading, busy, reload: load, changeStatus}
 }

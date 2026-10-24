@@ -19,9 +19,25 @@ export interface Booking {
   notes: string
 }
 
+/** One of the trend chart's weeks, as client/api/_dashboard.ts counts it. */
+export interface WeekCount {
+  start: string // YYYY-MM-DD, the week's first day
+  requests: number
+  confirmed: number // of those requests, the ones now Confirmed or Attended
+}
+
+/** The donut: Confirmed = Confirmed + Attended, Pending = New, Cancelled = Declined + No-show. */
+export interface StatusTotals {
+  confirmed: number
+  pending: number
+  cancelled: number
+}
+
 export interface BookingsResponse {
   today: string // YYYY-MM-DD in Dhaka
-  bookings: Booking[]
+  bookings: Booking[] // every row in the Sheet
+  weeks: WeekCount[] // 12, oldest first, the last ending today
+  totals: StatusTotals
 }
 
 export type NextStatus = 'Confirmed' | 'Declined' | 'Attended' | 'No-show'

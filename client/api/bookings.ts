@@ -1,14 +1,15 @@
-// GET/POST /api/bookings (Vercel Function), used only by the Bookings tool in Sanity Studio
-// (docs/booking-plan.md, "The dashboard's functions").
-//   GET               → the requests still waiting on Tania, and the sessions to mark
+// GET/POST /api/bookings (Vercel Function), used only by the Dashboard and Appointments tools in
+// Sanity Studio (docs/booking-plan.md, "The dashboard's functions").
+//   GET               → every booking row (the dashboard's fields only), plus the last 12 weeks'
+//                       request counts and the status totals, worked out here from the same rows
 //   POST {id, status} → sets that row's Status, if the change is an allowed one
 // Every call must carry the Studio user's Sanity token; the function asks Sanity who that is
 // and serves only the user IDs in ALLOWED_SANITY_USER_IDS. No secret lives in the Studio.
 // Request bodies are never logged: they name people and what they are facing.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
-  actionableBookings, bearerToken, canTransition, corsHeaders, findRowNumber, isBookingId, isStatus, parseList,
-  type Booking,
+  allBookings, bearerToken, canTransition, corsHeaders, findRowNumber, isBookingId, isStatus, parseList,
+  statusTotals, weeklyCounts, type Booking, type StatusTotals, type WeekCount,
 } from './_dashboard.js';
 import { COLUMN, dhakaParts, dhakaStamp, readRows, sheetConfig, writeStatus } from './_sheet.js';
 
@@ -33,6 +34,8 @@ export interface Deps {
 export interface BookingsResponse {
   today: string; // YYYY-MM-DD in Dhaka, so the Studio and the function agree on "today"
   bookings: Booking[];
+  weeks: WeekCount[]; // the trend chart, oldest first
+  totals: StatusTotals; // the donut
 }
 
 type Auth = { ok: true } | { ok: false; status: 401 | 403 | 503; error: string };
@@ -87,7 +90,9 @@ async function list(res: VercelResponse, sheet: SheetAccess, deps: Deps) {
     res.status(503).json({ error: UNAVAILABLE });
     return;
   }
-  const body: BookingsResponse = { today: dhakaParts(deps.now()).date, bookings: actionableBookings(rows) };
+  const today = dhakaParts(deps.now()).date;
+  const bookings = allBookings(rows);
+  const body: BookingsResponse = { today, bookings, weeks: weeklyCounts(bookings, today), totals: statusTotals(bookings) };
   res.status(200).json(body);
 }
 

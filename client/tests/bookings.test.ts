@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { actionableBookings, canTransition, corsHeaders, STATUSES, toBooking } from '../api/_dashboard.ts';
+import { allBookings, canTransition, corsHeaders, statusTotals, STATUSES, toBooking, weeklyCounts, type Booking } from '../api/_dashboard.ts';
 import { createHandler, type Deps, type SheetAccess } from '../api/bookings.ts';
 
 // ── fakes ──
@@ -121,10 +121,62 @@ describe('toBooking', () => {
     assert.equal(toBooking([]), null);
   });
 
-  it('lists only New and Confirmed rows', () => {
-    const rows = [HEADER, row('BK-20261024-0001', 'New'), row('BK-20261024-0002', 'Confirmed'),
+  it('lists every booking row, whatever its status, and nothing else', () => {
+    const rows = [HEADER, row('BK-20261024-0001', 'New'), row('BK-20261024-0002', 'Confirmed'), [],
       row('BK-20261024-0003', 'Declined'), row('BK-20261024-0004', 'Attended'), row('BK-20261024-0005', 'No-show')];
-    assert.deepEqual(actionableBookings(rows).map((b) => b.id), ['BK-20261024-0001', 'BK-20261024-0002']);
+    assert.deepEqual(allBookings(rows).map((b) => b.id),
+      ['BK-20261024-0001', 'BK-20261024-0002', 'BK-20261024-0003', 'BK-20261024-0004', 'BK-20261024-0005']);
+  });
+});
+
+// ── dashboard aggregates ──
+
+const booking = (received: string, status: string): Booking => ({
+  id: 'BK-20261024-0001', received, status, name: '', phone: '', email: '', concern: '', session: '', format: '',
+  date: '', time: '', message: '', notes: '',
+});
+
+describe('weeklyCounts', () => {
+  const TODAY = '2026-10-25';
+
+  it('gives 12 seven-day weeks, oldest first, the last one ending today', () => {
+    const weeks = weeklyCounts([], TODAY);
+    assert.equal(weeks.length, 12);
+    assert.equal(weeks[11].start, '2026-10-19');
+    assert.equal(weeks[10].start, '2026-10-12');
+    assert.equal(weeks[0].start, '2026-08-03');
+    assert.ok(weeks.every((w) => w.requests === 0 && w.confirmed === 0));
+  });
+
+  it('counts requests by the day they were received, and Confirmed or Attended ones as confirmed', () => {
+    const weeks = weeklyCounts([
+      booking('2026-10-25 09:00', 'New'), // today: last week
+      booking('2026-10-19 00:05', 'Confirmed'), // first day of the last week
+      booking('2026-10-18 23:59', 'Attended'), // last day of the week before
+      booking('2026-10-18 10:00', 'Declined'),
+      booking('2026-10-17 10:00', 'No-show'),
+    ], TODAY);
+    assert.deepEqual(weeks[11], { start: '2026-10-19', requests: 2, confirmed: 1 });
+    assert.deepEqual(weeks[10], { start: '2026-10-12', requests: 3, confirmed: 1 });
+  });
+
+  it('leaves out rows received outside the 12 weeks, or with no readable date', () => {
+    const weeks = weeklyCounts([
+      booking('2026-08-02 12:00', 'Confirmed'), // the day before the first week
+      booking('2026-08-03 12:00', 'Confirmed'), // the first week's first day
+      booking('2026-10-26 08:00', 'New'), // tomorrow (a clock ahead of the function's)
+      booking('', 'New'),
+      booking('last Tuesday', 'New'),
+    ], TODAY);
+    assert.deepEqual(weeks[0], { start: '2026-08-03', requests: 1, confirmed: 1 });
+    assert.equal(weeks.reduce((n, w) => n + w.requests, 0), 1);
+  });
+});
+
+describe('statusTotals', () => {
+  it('folds the five Sheet statuses into the three donut slices, ignoring anything else', () => {
+    const statuses = ['New', 'New', 'Confirmed', 'Attended', 'Attended', 'Declined', 'No-show', '', 'Maybe'];
+    assert.deepEqual(statusTotals(statuses.map((s) => booking('2026-10-25 09:00', s))), { confirmed: 3, pending: 2, cancelled: 2 });
   });
 });
 
@@ -170,12 +222,20 @@ describe('auth', () => {
     assert.equal((await call(deps(sheet, { fetch: down }), { method: 'GET', token: GOOD_TOKEN })).status, 503);
   });
 
-  it('lets an allowed user list the requests', async () => {
-    const res = await call(deps(sheet), { method: 'GET', token: GOOD_TOKEN });
+  it('lets an allowed user list the requests, with the weekly counts and status totals', async () => {
+    const { sheet: full } = fakeSheet([HEADER, row(ID, 'New'), row('BK-20261024-0002', 'Attended')]);
+    const res = await call(deps(full), { method: 'GET', token: GOOD_TOKEN });
     assert.equal(res.status, 200);
-    const body = res.body as { today: string; bookings: { id: string }[] };
+    const body = res.body as {
+      today: string; bookings: { id: string }[];
+      weeks: { start: string; requests: number; confirmed: number }[];
+      totals: { confirmed: number; pending: number; cancelled: number };
+    };
     assert.equal(body.today, '2026-10-25');
-    assert.deepEqual(body.bookings.map((b) => b.id), [ID]);
+    assert.deepEqual(body.bookings.map((b) => b.id), [ID, 'BK-20261024-0002']);
+    assert.equal(body.weeks.length, 12);
+    assert.deepEqual(body.weeks[11], { start: '2026-10-19', requests: 2, confirmed: 1 });
+    assert.deepEqual(body.totals, { confirmed: 1, pending: 1, cancelled: 0 });
   });
 });
 
