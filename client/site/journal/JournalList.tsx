@@ -4,12 +4,14 @@ import type { BlogPostData } from '../../context/SiteDataContext';
 import { SplitWords } from '../motion';
 import { PostMeta, PostRow, postHref, postImage } from './posts';
 
+const FEATURE_WIDTH = 1200; // the newest post's photo, about half the page wide
+
 function FeaturePost({ post }: { post: BlogPostData }) {
   const href = postHref(post.slug);
   return (
     <article className="feature">
       <Link to={href} tabIndex={-1} aria-hidden="true">
-        <figure data-reveal="mask"><img src={postImage(post.slug)} alt="" /></figure>
+        <figure data-reveal="mask"><img src={postImage(post, FEATURE_WIDTH)} alt="" /></figure>
       </Link>
       <div>
         <div data-reveal="rise"><PostMeta post={post} /></div>

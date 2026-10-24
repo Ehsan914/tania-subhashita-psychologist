@@ -1,4 +1,5 @@
 import {defineConfig} from 'sanity'
+import {media} from 'sanity-plugin-media'
 import {structureTool} from 'sanity/structure'
 import {bookingsTool} from './bookings'
 import {BrandIcon, StudioLayout, theme} from './branding'
@@ -18,7 +19,8 @@ export default defineConfig({
   theme,
   projectId,
   dataset: process.env.SANITY_STUDIO_DATASET || 'production',
-  plugins: [structureTool({structure})],
+  // Media: one browsable library of every uploaded photo, with tags and alt text.
+  plugins: [structureTool({structure}), media()],
   // Bookings first, so it is the page the Studio opens on.
   tools: (prev) => [bookingsTool, ...prev],
   // Token login, so useClient().config().token holds the session token the Bookings tool sends

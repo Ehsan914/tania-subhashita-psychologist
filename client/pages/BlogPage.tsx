@@ -13,6 +13,7 @@ import { clip } from '../lib/site';
 import { articleNode, pageGraph } from '../lib/schema';
 
 const JOURNAL = { name: 'Journal', path: '/blog' };
+const SHARE_WIDTH = 1200; // link previews (og:image) and the article's JSON-LD image
 
 export default function BlogPage() {
   // only published posts are loaded; a draft has no page
@@ -30,10 +31,10 @@ export default function BlogPage() {
     post ? `${post.title} | Tania Subhashita`
       : slug ? 'Page not found — Tania Subhashita' : 'Journal: Mental Health Articles | Tania Subhashita, Psychologist',
     post ? clip(post.summary) : 'Plain-language articles on anxiety, depression, trauma, habits and finding the right help in Bangladesh, from psychologist Tania Subhashita.',
-    post ? { type: 'article', image: postImage(post.slug) } : { noindex: !!slug },
+    post ? { type: 'article', image: postImage(post, SHARE_WIDTH) } : { noindex: !!slug },
   );
   useJsonLd('page', post
-    ? pageGraph('WebPage', path, post.title, [JOURNAL, { name: post.title, path }], [articleNode(post, path, postImage(post.slug))])
+    ? pageGraph('WebPage', path, post.title, [JOURNAL, { name: post.title, path }], [articleNode(post, path, postImage(post, SHARE_WIDTH))])
     : !slug && pageGraph('CollectionPage', path, 'Journal', [JOURNAL]));
 
   if (!slug && legacySlug) return <Navigate to={postHref(legacySlug)} replace />;

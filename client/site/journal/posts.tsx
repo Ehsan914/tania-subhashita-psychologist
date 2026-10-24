@@ -1,6 +1,7 @@
 // Shared pieces of the Journal list and article view (design: journal.js).
 import { Link } from 'react-router-dom';
 import type { BlogPostData, RichText } from '../../context/SiteDataContext';
+import { imageUrl } from '../../lib/sanity';
 
 export const postHref = (slug: string) => `/blog/${encodeURIComponent(slug)}`;
 
@@ -12,8 +13,8 @@ export function longDate(iso: string): string {
   return `${d} ${MONTHS[m - 1]} ${y}`;
 }
 
-// Posts have no image field: the design's photos for the seeded posts, and a
-// steady pick (by slug) from the same calm set for any post added later.
+// A post without its own image gets the design's photo for the seeded posts, or a steady
+// pick (by slug) from the same calm set.
 const POST_IMAGES: Record<string, string> = {
   'cbt-steps': '/images/tea.jpg',
   'overcome-procrastination': '/images/plant.jpg',
@@ -21,11 +22,16 @@ const POST_IMAGES: Record<string, string> = {
 };
 const FALLBACK_IMAGES = ['/images/tea.jpg', '/images/plant.jpg', '/images/poppies.jpg', '/images/chair.jpg', '/images/sage-wall.jpg', '/images/dock.jpg'];
 
-export function postImage(slug: string): string {
+function stockImage(slug: string): string {
   const known = POST_IMAGES[slug];
   if (known) return known;
   const seed = [...slug].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
   return FALLBACK_IMAGES[seed % FALLBACK_IMAGES.length];
+}
+
+/** The post's own image from the Studio at `width`, else its stock photo. */
+export function postImage(post: BlogPostData, width?: number): string {
+  return imageUrl(post.image, width) ?? stockImage(post.slug);
 }
 
 const WORDS_PER_MINUTE = 200;
