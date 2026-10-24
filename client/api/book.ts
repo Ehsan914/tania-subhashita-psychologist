@@ -3,11 +3,8 @@
 // the request body is never logged, since it holds names, numbers and what someone is facing.
 import { randomBytes } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { JWT } from 'google-auth-library';
+import { appendRow, dhakaParts, dhakaStamp, sheetConfig, type SheetConfig } from './_sheet.js';
 
-const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-const SHEET_RANGE = 'Bookings!A:L';
-const TIME_ZONE = 'Asia/Dhaka';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DAYS_AHEAD_MAX = 30;
 
@@ -52,15 +49,6 @@ function bookingInputError(body: Record<string, unknown>): string | null {
   return null;
 }
 
-// "2026-10-24 14:05" in Dhaka, whatever zone the function runs in.
-function dhakaParts(now: Date) {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-  }).formatToParts(now);
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
-  return { date: `${get('year')}-${get('month')}-${get('day')}`, time: `${get('hour')}:${get('minute')}` };
-}
-
 // BK-20261024-7F3A: the day it arrived and four random hex digits.
 function bookingId(now: Date): string {
   return `BK-${dhakaParts(now).date.replace(/-/g, '')}-${randomBytes(2).toString('hex').toUpperCase()}`;
@@ -73,10 +61,9 @@ const asText = (value: string | undefined) => `'${(value ?? '').trim()}`;
 // Columns as in docs/booking-plan.md: ID, Received, Status, Name, Phone, Email,
 // Concern / service, Session, Format, Preferred date, Preferred time, Message.
 function sheetRow(id: string, now: Date, b: Partial<Booking>): string[] {
-  const received = dhakaParts(now);
   return [
     id,
-    `${received.date} ${received.time}`,
+    dhakaStamp(now),
     'New',
     asText(b.clientName),
     asText(b.clientPhone),
@@ -88,29 +75,6 @@ function sheetRow(id: string, now: Date, b: Partial<Booking>): string[] {
     asText(b.preferredTime),
     asText(b.message),
   ];
-}
-
-interface SheetConfig {
-  sheetId: string;
-  auth: JWT;
-}
-
-function sheetConfig(): SheetConfig | null {
-  const sheetId = process.env.BOOKINGS_SHEET_ID;
-  const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (!sheetId || !keyJson) return null;
-  const key = JSON.parse(keyJson) as { client_email?: string; private_key?: string };
-  if (!key.client_email || !key.private_key) return null;
-  return { sheetId, auth: new JWT({ email: key.client_email, key: key.private_key, scopes: [SHEETS_SCOPE] }) };
-}
-
-async function appendRow({ sheetId, auth }: SheetConfig, row: string[]): Promise<void> {
-  const range = encodeURIComponent(SHEET_RANGE);
-  await auth.request({
-    url: `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=USER_ENTERED`,
-    method: 'POST',
-    data: { values: [row] },
-  });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
