@@ -45,7 +45,9 @@ export class ApiError extends Error {
   }
 }
 
-export const BOOKINGS_API = process.env.SANITY_STUDIO_BOOKINGS_API ?? ''
+// The deployed Studio lives on the site (/studio), so the function is same-origin by default;
+// `sanity dev` on localhost sets the full address in studio/.env.
+export const BOOKINGS_API = process.env.SANITY_STUDIO_BOOKINGS_API || '/api/bookings'
 
 async function call<T>(token: string | undefined, init: RequestInit = {}): Promise<T> {
   if (!BOOKINGS_API) throw new ApiError('config', 'The bookings address is not set (SANITY_STUDIO_BOOKINGS_API).')
