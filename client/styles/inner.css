@@ -177,7 +177,9 @@ body[data-page="therapies"] .page-head { padding-block: calc(84px + clamp(48px, 
 .post-row p { margin-top: 10px; color: var(--ink-soft); max-width: 36em; }
 .post-row .read { justify-self: end; font-size: 14px; font-weight: 600; color: var(--accent-deep); }
 
-.article { padding-top: calc(84px + clamp(56px, 8vw, 112px)); }
+.article { padding-top: calc(84px + clamp(56px, 8vw, 112px)); padding-bottom: var(--section); }
+/* the article ends with its own space; "Keep reading" (when there are other posts) doesn't add more */
+.article + .section { padding-top: 0; }
 .article .back { font-size: 15px; font-weight: 600; color: var(--ink-soft); display: inline-flex; gap: 8px; transition: color .25s, gap .3s var(--ease-out); }
 .article .back:hover { color: var(--ink); gap: 12px; }
 .article header { max-width: 860px; margin: 40px auto 0; text-align: center; }
