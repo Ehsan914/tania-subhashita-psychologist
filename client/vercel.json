@@ -4,5 +4,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/therapies", "destination": "/services", "permanent": true },
+    { "source": "/therapies/:slug", "destination": "/services/:slug", "permanent": true },
+    { "source": "/journal", "destination": "/blog", "permanent": true },
+    { "source": "/journal/:slug", "destination": "/blog/:slug", "permanent": true }
+  ]
 }
