@@ -210,9 +210,10 @@ describe('POST', () => {
     }
   });
 
-  it('503 when the Sheet env is missing', async () => {
+  it('503 marked not-connected when the Sheet env is missing', async () => {
     const res = await call(deps(fakeSheet([]).sheet, { sheet: () => null }), { method: 'GET', token: GOOD_TOKEN });
     assert.equal(res.status, 503);
+    assert.equal((res.body as { code?: string }).code, 'not-connected');
   });
 });
 
