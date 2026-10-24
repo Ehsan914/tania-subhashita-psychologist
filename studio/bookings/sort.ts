@@ -1,8 +1,9 @@
-// How the Bookings tool groups, orders and labels requests. No React, no I/O.
-import type {Booking} from './api'
+// How the Dashboard and Appointments tools group, order and label bookings. No React, no I/O.
+import type {Booking, BookingsResponse, NextStatus} from './api'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const WEEK_DAYS = 7
+const TREND_WEEKS = 12 // as client/api/_dashboard.ts
 const MINUTES_PER_HOUR = 60
 const NOON = 12
 
@@ -17,35 +18,83 @@ export function timeMinutes(time: string): number {
   return hour * MINUTES_PER_HOUR + Number(match[2] ?? 0)
 }
 
-const byWhen = (a: Booking, b: Booking) => a.date.localeCompare(b.date) || timeMinutes(a.time) - timeMinutes(b.time)
+export const byWhen = (a: Booking, b: Booking) => a.date.localeCompare(b.date) || timeMinutes(a.time) - timeMinutes(b.time)
 
-export interface Groups {
+export interface DashboardGroups {
   waiting: Booking[] // New: needs Confirm or Decline
   today: Booking[] // Confirmed for today
-  upcoming: Booking[] // Confirmed, after today
-  unmarked: Booking[] // Confirmed, day passed, not yet marked Attended / No-show
   nextWeek: number // Confirmed from today through the next 6 days
 }
 
-export function groupBookings(bookings: Booking[], today: string): Groups {
+export function dashboardGroups(bookings: Booking[], today: string): DashboardGroups {
   const confirmed = bookings.filter((b) => b.status === 'Confirmed').sort(byWhen)
   const weekEnd = addDays(today, WEEK_DAYS - 1)
   return {
     waiting: bookings.filter((b) => b.status === 'New').sort(byWhen),
     today: confirmed.filter((b) => b.date === today),
-    upcoming: confirmed.filter((b) => b.date > today),
-    unmarked: confirmed.filter((b) => b.date < today),
     nextWeek: confirmed.filter((b) => b.date >= today && b.date <= weekEnd).length,
   }
 }
 
+/** Today in Dhaka, as the bookings function counts it. */
+export function dhakaToday(now: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {timeZone: 'Asia/Dhaka', year: 'numeric', month: '2-digit', day: '2-digit'}).format(now)
+}
+
+/** What the pages show while the Sheet can't be read: no bookings, 12 empty weeks. */
+export function emptyResponse(now: Date): BookingsResponse {
+  const today = dhakaToday(now)
+  const first = addDays(today, -TREND_WEEKS * WEEK_DAYS + 1)
+  return {
+    today,
+    bookings: [],
+    weeks: Array.from({length: TREND_WEEKS}, (_, i) => ({start: addDays(first, i * WEEK_DAYS), requests: 0, confirmed: 0})),
+    totals: {confirmed: 0, pending: 0, cancelled: 0},
+  }
+}
+
+// ── statuses ──
+
+/** The Sheet's statuses in the order the Appointments tabs list them. */
+export const STATUSES = ['New', 'Confirmed', 'Attended', 'Declined', 'No-show'] as const
+
+/** The design's pill colour for each Sheet status. */
+export const PILL: Record<string, 'pending' | 'confirmed' | 'cancelled' | 'off'> = {
+  New: 'pending',
+  Confirmed: 'confirmed',
+  Attended: 'confirmed',
+  Declined: 'cancelled',
+  'No-show': 'off',
+}
+
+/** The status changes the function allows from each status (client/api/_dashboard.ts). */
+export const NEXT: Record<string, {status: NextStatus; text: string; primary: boolean}[]> = {
+  New: [
+    {status: 'Declined', text: 'Decline', primary: false},
+    {status: 'Confirmed', text: 'Confirm', primary: true},
+  ],
+  Confirmed: [
+    {status: 'No-show', text: 'No-show', primary: false},
+    {status: 'Attended', text: 'Attended', primary: true},
+  ],
+}
+
+// ── labels ──
+
 const dayFormat = new Intl.DateTimeFormat('en-GB', {weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC'})
+const stampFormat = new Intl.DateTimeFormat('en-GB', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'})
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}/
+
+const label = (format: Intl.DateTimeFormat, iso: string) => {
+  const ms = Date.parse(`${iso.slice(0, 10)}T00:00:00Z`)
+  return ISO_DATE.test(iso) && !Number.isNaN(ms) ? format.format(ms) : iso
+}
 
 /** "2026-10-28" → "Wed 28 Oct"; text the Sheet holds in another shape is shown as it is. */
-export function formatDay(iso: string): string {
-  const ms = Date.parse(`${iso}T00:00:00Z`)
-  return /^\d{4}-\d{2}-\d{2}$/.test(iso) && !Number.isNaN(ms) ? dayFormat.format(ms) : iso
-}
+export const formatDay = (iso: string) => label(dayFormat, iso)
+
+/** The Received stamp "2026-10-24 14:05" → "24 Oct 2026". */
+export const formatStamp = (stamp: string) => label(stampFormat, stamp)
 
 export function initials(name: string): string {
   const parts = name.replace(/[^\p{L}\s]/gu, ' ').split(/\s+/).filter(Boolean)
