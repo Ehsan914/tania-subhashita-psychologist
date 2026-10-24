@@ -7,7 +7,8 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build && vite build --ssr prerender.tsx --outDir dist-server && node dist-server/prerender.js",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "tsx --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -27,6 +28,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vercel/node": "^27.0.2",
+    "tsx": "^4.23.15",
     "typescript": "~5.8.2"
   },
   "description": "",
