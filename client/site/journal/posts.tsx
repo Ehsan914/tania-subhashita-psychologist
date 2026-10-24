@@ -1,6 +1,6 @@
 // Shared pieces of the Journal list and article view (design: journal.js).
 import { Link } from 'react-router-dom';
-import type { BlogPostData } from '../../context/SiteDataContext';
+import type { BlogPostData, RichText } from '../../context/SiteDataContext';
 
 export const postHref = (slug: string) => `/blog/${encodeURIComponent(slug)}`;
 
@@ -28,9 +28,21 @@ export function postImage(slug: string): string {
   return FALLBACK_IMAGES[seed % FALLBACK_IMAGES.length];
 }
 
+const WORDS_PER_MINUTE = 200;
+
+// "4 min read", from the words in the post itself. A block's spans are joined as written (a
+// bolded word stays one word); blocks are kept apart so paragraphs don't run together.
+export function readingTime(body: RichText): string {
+  const text = body
+    .map((block) => (Array.isArray(block.children) ? block.children.map((span) => (typeof span.text === 'string' ? span.text : '')).join('') : ''))
+    .join(' ');
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.round(words / WORDS_PER_MINUTE))} min read`;
+}
+
 export function PostMeta({ post }: { post: BlogPostData }) {
   return (
-    <p className="post-meta"><span className="cat">{post.category}</span><span>{longDate(post.date)}</span><span>{post.readTime}</span></p>
+    <p className="post-meta"><span className="cat">{post.category}</span><span>{longDate(post.date)}</span><span>{readingTime(post.body)}</span></p>
   );
 }
 
