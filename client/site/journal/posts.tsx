@@ -4,7 +4,15 @@ import type { BlogPostData } from '../../context/SiteDataContext';
 
 export const postHref = (slug: string) => `/blog/${encodeURIComponent(slug)}`;
 
-// Posts have no image field in the API: the design's photos for the seeded posts, and a
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// "2026-10-24" or "2026-10-24T…" → "24 October 2026", the same in the prerender and every browser.
+export function longDate(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  return `${d} ${MONTHS[m - 1]} ${y}`;
+}
+
+// Posts have no image field: the design's photos for the seeded posts, and a
 // steady pick (by slug) from the same calm set for any post added later.
 const POST_IMAGES: Record<string, string> = {
   'cbt-steps': '/images/tea.jpg',
@@ -22,7 +30,7 @@ export function postImage(slug: string): string {
 
 export function PostMeta({ post }: { post: BlogPostData }) {
   return (
-    <p className="post-meta"><span className="cat">{post.category}</span><span>{post.date}</span><span>{post.readTime}</span></p>
+    <p className="post-meta"><span className="cat">{post.category}</span><span>{longDate(post.date)}</span><span>{post.readTime}</span></p>
   );
 }
 

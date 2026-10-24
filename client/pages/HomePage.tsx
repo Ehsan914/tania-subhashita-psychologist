@@ -13,7 +13,10 @@ import Voices from '../site/home/Voices';
 import Moments from '../site/home/Moments';
 import Faq from '../site/home/Faq';
 import Closing from '../site/home/Closing';
-import { usePageMeta } from '../hooks/usePageMeta';
+import { usePageMeta, useJsonLd } from '../hooks/usePageMeta';
+import { pageGraph } from '../lib/schema';
+
+const TITLE = 'Psychologist in Dhaka & Online Counselling | Tania Subhashita';
 
 // Links such as /#check land on their section once the page (and the hero pin) is laid out.
 function useScrollToHash() {
@@ -28,31 +31,27 @@ function useScrollToHash() {
 }
 
 export default function HomePage() {
-  usePageMeta('Tania Subhashita — Psychologist in Dhaka & online', 'Compassionate, evidence-based therapy for anxiety, low mood, trauma and addictive habits with psychologist Tania Subhashita, in New Eskaton, Dhaka, and online.');
+  usePageMeta(TITLE, 'Confidential counselling with psychologist Tania Subhashita in New Eskaton, Dhaka, or online across Bangladesh, for anxiety, depression, trauma and addiction.');
+  useJsonLd('page', pageGraph('WebPage', '/', TITLE, []));
   const rootRef = useRef<HTMLDivElement>(null);
-  const {
-    hero, welcome, services, methodologyQuote, methodologySteps, statistics,
-    assessmentQuestions, scoreBands, testimonials, gallery, faqs, cta,
-  } = useSiteData();
+  const { home, services, assessment, faqs } = useSiteData();
+  const statements = assessment?.statements ?? [];
 
-  useReveal(rootRef, [
-    hero, welcome, services, methodologyQuote, methodologySteps, statistics,
-    assessmentQuestions, testimonials, gallery, faqs, cta,
-  ]);
+  useReveal(rootRef, [home, services, assessment, faqs]);
   useScrollToHash();
 
   return (
     <div ref={rootRef}>
-      <HomeHero hero={hero} />
-      <Welcome welcome={welcome} />
+      <HomeHero home={home} />
+      <Welcome home={home} />
       {services.length > 0 && <Concerns services={services} />}
-      <Approach quote={methodologyQuote} steps={methodologySteps} />
-      {statistics.length > 0 && <Numbers statistics={statistics} />}
-      {assessmentQuestions.length > 0 && <SelfCheck questions={assessmentQuestions} bands={scoreBands} />}
-      {testimonials.length > 0 && <Voices testimonials={testimonials} />}
-      {gallery.length > 0 && <Moments images={gallery} />}
+      <Approach home={home} />
+      {home && home.stats.length > 0 && <Numbers stats={home.stats} />}
+      {statements.length > 0 && <SelfCheck questions={statements} bands={assessment?.results ?? []} />}
+      {home && home.testimonials.length > 0 && <Voices testimonials={home.testimonials} />}
+      {home && home.galleryPhotos.length > 0 && <Moments images={home.galleryPhotos} />}
       {faqs.length > 0 && <Faq faqs={faqs} />}
-      <Closing cta={cta} />
+      <Closing home={home} />
     </div>
   );
 }

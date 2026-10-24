@@ -1,0 +1,8 @@
+# Search engines and AI assistants (ChatGPT, Claude, Perplexity, Gemini, Copilot) may read
+# every public page, so people asking them for a psychologist in Dhaka can be pointed here.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://taniasubhashita.com/sitemap.xml

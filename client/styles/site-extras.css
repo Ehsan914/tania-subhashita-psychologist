@@ -27,3 +27,56 @@
   & .bar::after { content: ""; display: block; height: 100%; width: 40%; background: var(--accent); animation: site-loading 1.4s var(--ease-out) infinite; }
 }
 @keyframes site-loading { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+/* Keyboard users can jump past the header straight to the page's content. */
+.skip-link {
+  position: fixed; z-index: 1000; left: var(--gutter); top: 12px;
+  padding: 10px 18px; border-radius: 999px; background: var(--ink); color: var(--paper);
+  font-weight: 600; font-size: 15px; text-decoration: none;
+  translate: 0 -200%; transition: translate .2s var(--ease-out);
+  &:focus-visible { translate: 0 0; }
+}
+.site-app main:focus { outline: none; }
+
+/* Prerendered pages: hold back the elements that animate in until the app has set their
+   starting state (the class is removed as soon as it has). The animation is a fallback,
+   so the content still appears if the script never runs. */
+.reveal-pending [data-reveal] { visibility: hidden; animation: reveal-fallback 0s 2.5s forwards; }
+@keyframes reveal-fallback { to { visibility: visible; } }
+
+/* A therapy's own page (/services/<slug>). */
+.service-page .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 14px; color: var(--ink-soft); margin-bottom: 22px; }
+.service-page .crumbs a { color: inherit; }
+.service-page .crumbs li:not(:last-child)::after { content: '/'; margin-left: 8px; opacity: .6; }
+.service-page .crumbs ol { display: contents; list-style: none; }
+.service-body { display: grid; gap: clamp(40px, 6vw, 88px); grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); padding-bottom: var(--section); }
+.service-body h2 { font: 400 clamp(26px, 3vw, 36px)/1.15 var(--display); margin: 0 0 18px; }
+.service-body section + section { margin-top: clamp(40px, 5vw, 64px); }
+.service-body .points { list-style: none; display: grid; gap: 12px; }
+.service-body .points li { position: relative; padding-left: 26px; line-height: 1.6; }
+.service-body .points li::before { content: ''; position: absolute; left: 4px; top: .62em; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.service-body p { line-height: 1.7; max-width: 62ch; }
+.service-body p + p { margin-top: 14px; }
+.service-body .note { padding: 18px 22px; border-radius: var(--radius); background: var(--band); }
+.service-body aside { align-self: start; position: sticky; top: calc(108px + var(--announce-h, 0px)); padding: 28px; border-radius: var(--radius); background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
+.service-body aside dl { display: grid; gap: 14px; margin: 0 0 24px; }
+.service-body aside dt { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.service-body aside dd { margin: 2px 0 0; }
+.service-body .related { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; }
+.service-body .related a { display: inline-block; padding: 8px 16px; border-radius: 999px; box-shadow: 0 0 0 1px var(--line-strong); color: var(--ink); text-decoration: none; }
+.service-body .related a:hover { background: var(--band); }
+@media (max-width: 860px) {
+  .service-body { grid-template-columns: minmax(0, 1fr); }
+  .service-body aside { position: static; }
+}
+
+/* Links inside article and service text: coloured and underlined, so they never rely on colour alone. */
+.article .body a, .service-body p a:not(.btn) {
+  color: var(--accent-deep); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  &:hover { text-decoration-thickness: 2px; }
+}
+
+/* Article byline: who wrote it and when it was last checked. */
+.byline { display: flex; align-items: center; gap: 14px; margin-top: 26px; font-size: 15px; color: var(--ink-soft); }
+.byline img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+.byline a { color: var(--ink); font-weight: 600; }

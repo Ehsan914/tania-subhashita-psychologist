@@ -1,17 +1,24 @@
 // A single Journal article, then the other posts (design: journal.js, renderArticle()).
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { BlogPostData } from '../../context/SiteDataContext';
+import { isoDate } from '../../lib/schema';
 import { SplitWords } from '../motion';
 import { PostBody } from './PostBody';
-import { PostMeta, PostRow, postImage } from './posts';
+import { PostMeta, PostRow, longDate, postImage } from './posts';
 
-function useDocumentTitle(title: string) {
-  useEffect(() => {
-    const previous = document.title;
-    document.title = title;
-    return () => { document.title = previous; };
-  }, [title]);
+// Health articles say who wrote them, and when they last changed if that was after publication.
+function Byline({ post }: { post: BlogPostData }) {
+  const published = isoDate(post.date);
+  const updated = published && post._updatedAt.slice(0, 10) > published ? post._updatedAt : null;
+  return (
+    <p className="byline" data-reveal="rise">
+      <img src="/images/tania-subhashita-portrait.jpeg" alt="" width={48} height={48} />
+      <span>
+        Written by <Link to="/about">Tania Subhashita</Link>, psychologist in Dhaka
+        {updated && <><br />Updated {longDate(updated)}</>}
+      </span>
+    </p>
+  );
 }
 
 function BackLink() {
@@ -19,8 +26,6 @@ function BackLink() {
 }
 
 export function JournalArticle({ post, others }: { post: BlogPostData; others: BlogPostData[] }) {
-  useDocumentTitle(`${post.title} — Tania Subhashita`);
-
   return (
     <>
       <article className="article">
@@ -28,10 +33,11 @@ export function JournalArticle({ post, others }: { post: BlogPostData; others: B
         <header className="wrap">
           <div data-reveal="rise"><PostMeta post={post} /></div>
           <h1 className="h1" data-reveal="split"><SplitWords>{post.title}</SplitWords></h1>
+          <Byline post={post} />
         </header>
         <div className="wrap"><figure className="banner" data-reveal="mask"><img src={postImage(post.slug)} alt="" /></figure></div>
         <div className="wrap">
-          <div className="body" data-reveal="rise"><PostBody content={post.content} /></div>
+          <div className="body" data-reveal="rise"><PostBody body={post.body} /></div>
           <aside className="aside-cta" data-reveal="rise">
             <strong>Would it help to talk it through?</strong>
             <Link className="btn" to="/book">Book a free consult <span className="arrow" aria-hidden="true">→</span></Link>
@@ -47,21 +53,5 @@ export function JournalArticle({ post, others }: { post: BlogPostData; others: B
         </section>
       )}
     </>
-  );
-}
-
-// An unknown or unpublished slug: say so kindly and point back to the Journal.
-export function ArticleNotFound() {
-  useDocumentTitle('Article not found — Tania Subhashita');
-
-  return (
-    <article className="article" style={{ paddingBottom: 'var(--section)' }}>
-      <BackLink />
-      <header className="wrap">
-        <h1 className="h1">This note isn’t <em>here.</em></h1>
-        <p className="lede" style={{ marginTop: 22 }}>It may have moved or been taken down. The other articles are still in the Journal.</p>
-        <Link className="btn" to="/blog" style={{ marginTop: 32 }}>Back to the Journal <span className="arrow" aria-hidden="true">→</span></Link>
-      </header>
-    </article>
   );
 }

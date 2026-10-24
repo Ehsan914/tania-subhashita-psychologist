@@ -2,7 +2,7 @@
 import { useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import type { ProgramData, ServiceData } from '../../context/SiteDataContext';
-import { bookHref, CRISIS_SLUG } from './therapyData';
+import { CRISIS_SLUG, serviceHref } from './therapyData';
 
 const MAX_CARD_STAGGER = 8;
 
@@ -27,10 +27,10 @@ interface ItemProps {
 export function TherapyRow({ service, index, program, isTarget }: ItemProps & { isTarget: boolean }) {
   return (
     <li className={isTarget ? 'service is-target' : 'service'} id={service.slug} style={{ '--i': index } as CSSProperties}>
-      <Link to={bookHref(service.slug)}>
-        <span className="txt"><strong>{service.name}</strong><small>{service.description}</small></span>
+      <Link to={serviceHref(service.slug)}>
+        <span className="txt"><strong>{service.name}</strong><small>{service.summary}</small></span>
         <span className="go" aria-hidden="true">→</span>
-        <span className="visually-hidden">, book a session</span>
+        <span className="visually-hidden">, how sessions work and booking</span>
       </Link>
       {service.slug === CRISIS_SLUG && <CrisisNote />}
       {program && <AlsoProgram program={program} lead="Also offered as a programme:" />}
@@ -55,11 +55,11 @@ export function TherapyCard({ service, index, program }: ItemProps) {
     <li className="s-card" style={{ '--i': Math.min(index, MAX_CARD_STAGGER) } as CSSProperties}>
       <TherapyPhoto slug={service.slug} />
       <div className="s-body">
-        <h4><Link to={bookHref(service.slug)}>{service.name}<span className="visually-hidden">, book a session</span></Link></h4>
-        <p>{service.description}</p>
+        <h4><Link to={serviceHref(service.slug)}>{service.name}<span className="visually-hidden">, how sessions work and booking</span></Link></h4>
+        <p>{service.summary}</p>
         {service.slug === CRISIS_SLUG && <CrisisNote />}
         {program && <AlsoProgram program={program} lead="Also a programme:" />}
-        <span className="s-go" aria-hidden="true">Book a session <span className="arrow">→</span></span>
+        <span className="s-go" aria-hidden="true">Learn more <span className="arrow">→</span></span>
       </div>
     </li>
   );

@@ -7,7 +7,7 @@ export interface AreaCopy {
 }
 
 // Each area in the words people use for how they feel, not clinical labels. Keys are the
-// services' category values as stored in the DB (US spelling); insertion order is the design's.
+// services' category values as stored in Sanity (US spelling); insertion order is the design's.
 export const AREA_COPY = new Map<string, AreaCopy>([
   ['Mood & Emotion', { feel: 'My mood and feelings', line: 'Sadness, worry, fear, grief or guilt that won’t settle.' }],
   ['Self & Relationships', { feel: 'Myself and the people close to me', line: 'Confidence, decisions, partners, family and friends.' }],
@@ -24,14 +24,18 @@ export function areasOf(services: ServiceData[]): string[] {
   return [...known, ...extra];
 }
 
-// Programs carry no service link in the API, so the design's pairing is kept here by slug.
+// Programs carry no service link in Sanity, so the design's pairing is kept here by slug.
 const PROGRAM_FOR_SERVICE: Record<string, string> = {
   'anxiety-disorder': 'anxiety-panic',
   'behavioral-addiction': 'addiction-reset',
   'exam-phobia': 'student-peak-mind',
 };
 
-// service slug → the program also offered for it (only programs the API returns).
+// service slug → the program also offered for it (only programs that are published and visible).
+// program slug → the service it is offered for, so registering interest preselects that therapy.
+export const serviceForProgram = (programSlug: string): string | undefined =>
+  Object.entries(PROGRAM_FOR_SERVICE).find(([, program]) => program === programSlug)?.[0];
+
 export function linkPrograms(programs: ProgramData[]): Map<string, ProgramData> {
   const bySlug = new Map(programs.map((p) => [p.slug, p]));
   return new Map(Object.entries(PROGRAM_FOR_SERVICE).flatMap(([service, program]) => {
@@ -44,3 +48,6 @@ export function linkPrograms(programs: ProgramData[]): Map<string, ProgramData> 
 export const CRISIS_SLUG = 'suicidal-thought';
 
 export const bookHref = (slug: string) => `/book?service=${encodeURIComponent(slug)}`;
+
+// A therapy's own page: what it covers, how sessions work, and the way to book it.
+export const serviceHref = (slug: string) => `/services/${encodeURIComponent(slug)}`;

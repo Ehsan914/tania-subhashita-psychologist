@@ -21,7 +21,7 @@ interface TherapyListProps {
 export function TherapyList({ areas, services, programFor, query, onQuery, listArea, onListArea }: TherapyListProps) {
   const barRef = useRef<HTMLDivElement>(null);
   const q = query.trim().toLowerCase();
-  const isHit = (s: ServiceData) => !q || `${s.name} ${s.description}`.toLowerCase().includes(q);
+  const isHit = (s: ServiceData) => !q || `${s.name} ${s.summary}`.toLowerCase().includes(q);
 
   const groups = areas
     .filter((area) => listArea === ALL_AREAS || area === listArea)

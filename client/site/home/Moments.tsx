@@ -5,12 +5,16 @@ import {
   useEffect, useRef, useState,
   type Dispatch, type KeyboardEvent, type PointerEvent, type RefObject, type SetStateAction,
 } from 'react';
-import type { GalleryImage } from '../../context/SiteDataContext';
+import type { GalleryPhoto } from '../../context/SiteDataContext';
+import { imageUrl } from '../../lib/sanity';
 import { isMotionOff, SplitWords } from '../motion';
 
 const AUTO_MS = 5000;
 const SWIPE_MIN_PX = 40;
 const ON_SCREEN_THRESHOLD = 0.4;
+const STAGE_WIDTH = 1600;
+const BACKDROP_WIDTH = 400;
+const THUMB_WIDTH = 240;
 
 // Auto-advance, paused on hover, on focus, while off screen, and with reduced motion.
 function useAutoAdvance(
@@ -49,7 +53,7 @@ function useAutoAdvance(
   return { paused, setHovered, setFocused };
 }
 
-export default function Moments({ images }: { images: GalleryImage[] }) {
+export default function Moments({ images }: { images: GalleryPhoto[] }) {
   const count = images.length;
   const [current, setCurrent] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -107,9 +111,10 @@ export default function Moments({ images }: { images: GalleryImage[] }) {
         >
           <div className="stage" id="g-stage" aria-live="polite" onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
             {images.map((g, i) => (
-              <figure key={g.id} className={i === index ? 'slide is-on' : 'slide'} aria-hidden={i !== index}>
-                <img className="backdrop" src={g.url} alt="" aria-hidden="true" loading={i ? 'lazy' : undefined} />
-                <img className="photo" src={g.url} alt={g.altText} loading={i ? 'lazy' : undefined} />
+              <figure key={g._key} className={i === index ? 'slide is-on' : 'slide'} aria-hidden={i !== index}>
+                {/* the backdrop is blurred, so a small copy looks the same */}
+                <img className="backdrop" src={imageUrl(g, BACKDROP_WIDTH)} alt="" aria-hidden="true" loading={i ? 'lazy' : undefined} />
+                <img className="photo" src={imageUrl(g, STAGE_WIDTH)} alt={g.alt} loading={i ? 'lazy' : undefined} />
               </figure>
             ))}
           </div>
@@ -122,16 +127,16 @@ export default function Moments({ images }: { images: GalleryImage[] }) {
           <div className="progress" aria-hidden="true"><i ref={barRef} /></div>
         </div>
         <div className="slider-foot">
-          <p className="caption" id="g-caption">{images[index].altText}</p>
+          <p className="caption" id="g-caption">{images[index].alt}</p>
           <p className="count" id="g-count" aria-hidden="true">{index + 1} / {count}</p>
         </div>
         <div className="thumbs" id="g-thumbs" role="tablist" aria-label="Choose a photo" ref={thumbsRef}>
           {images.map((g, i) => (
             <button
-              key={g.id} type="button" role="tab" aria-selected={i === index}
-              aria-label={`Photo ${i + 1}: ${g.altText}`} onClick={() => show(i)}
+              key={g._key} type="button" role="tab" aria-selected={i === index}
+              aria-label={`Photo ${i + 1}: ${g.alt}`} onClick={() => show(i)}
             >
-              <img src={g.url} alt="" loading="lazy" />
+              <img src={imageUrl(g, THUMB_WIDTH)} alt="" loading="lazy" />
             </button>
           ))}
         </div>

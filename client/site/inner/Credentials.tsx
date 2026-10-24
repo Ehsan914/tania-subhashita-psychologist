@@ -13,7 +13,7 @@ export function Credentials({ credentials }: { credentials: Credential[] }) {
         </div>
         <ol className="rule-list" data-reveal="list">
           {credentials.map((c) => (
-            <li key={c.id}><div><h3>{c.title}</h3>{c.description && <p>{c.description}</p>}</div></li>
+            <li key={c._key}><div><h3>{c.title}</h3>{c.description && <p>{c.description}</p>}</div></li>
           ))}
         </ol>
       </div>

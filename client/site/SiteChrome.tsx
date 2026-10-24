@@ -2,8 +2,9 @@
 // (design-demo/calm-elegant/site/assets/site.js).
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { useSiteData } from '../context/SiteDataContext';
-import { sanitizeHtml } from '../lib/sanitizeHtml';
+import { useSiteData, type RichText } from '../context/SiteDataContext';
+import { useHydrated } from '../hooks/useHydrated';
+import { InlineSpan } from './RichText';
 
 const SCROLLED_AT = 40;
 const COMPACT_CRISIS_AT = 200;
@@ -18,17 +19,17 @@ export const NAV = [
 ];
 
 export function useContactDetails() {
-  const { contact, siteSettings } = useSiteData();
+  const { contact, general } = useSiteData();
   const phone = contact?.phone ?? '';
   return {
-    clinic: contact?.clinicName ?? '',
+    clinic: contact?.practiceName ?? '',
     address: contact?.address ?? '',
     phone,
     phoneHref: phone.replace(/[^\d+]/g, ''),
     email: contact?.email ?? '',
-    hours: contact?.officeHours ?? '',
-    facebook: siteSettings?.facebookUrl ?? '',
-    linkedin: siteSettings?.linkedinUrl ?? '',
+    hours: contact?.openingHours ?? '',
+    facebook: general?.facebookUrl ?? '',
+    linkedin: general?.linkedinUrl ?? '',
   };
 }
 
@@ -46,7 +47,7 @@ function useScrolledPast(px: number) {
 
 // The design's layout assumes an 84px fixed header. While the announcement sits on top of it,
 // its height (which grows as the text wraps) is published as --announce-h so the layout moves down by it.
-function AnnouncementBar({ html, onDismiss }: { html: string; onDismiss: () => void }) {
+function AnnouncementBar({ text, onDismiss }: { text: RichText; onDismiss: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -62,18 +63,19 @@ function AnnouncementBar({ html, onDismiss }: { html: string; onDismiss: () => v
 
   return (
     <div className="announce" ref={ref}>
-      <span dangerouslySetInnerHTML={{ __html: html }} />
+      <InlineSpan value={text} />
       <button className="close" type="button" aria-label="Dismiss announcement" onClick={onDismiss}>×</button>
     </div>
   );
 }
 
-// The admin's announcement line, shown above the header until dismissed for the visit.
+// The announcement from General settings, shown above the header until dismissed for the visit.
 function Announcement() {
-  const { siteSettings } = useSiteData();
+  const { general } = useSiteData();
   const [dismissed, setDismissed] = useState(false);
-  if (dismissed || !siteSettings?.announcementActive || !siteSettings.announcementText) return null;
-  return <AnnouncementBar html={sanitizeHtml(siteSettings.announcementText)} onDismiss={() => setDismissed(true)} />;
+  const text = general?.announcement;
+  if (dismissed || !general?.isAnnouncementVisible || !text?.length) return null;
+  return <AnnouncementBar text={text} onDismiss={() => setDismissed(true)} />;
 }
 
 function NavLinks() {
@@ -124,9 +126,11 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
-  const { siteSettings } = useSiteData();
+  const { general } = useSiteData();
   const contact = useContactDetails();
-  const [first, ...rest] = (siteSettings?.siteName || 'Tania Subhashita').split(' ');
+  // the year comes from the visitor's clock, not the build's, so it waits for hydration
+  const hydrated = useHydrated();
+  const [first, ...rest] = (general?.siteName || 'Tania Subhashita').split(' ');
 
   return (
     <footer className="site-footer">
@@ -137,11 +141,11 @@ export function SiteFooter() {
             <p style={{ marginTop: 14 }}>Psychologist &amp; counsellor<br />Dhaka and online</p>
           </div>
           <div>
-            <h4>Visit</h4>
+            <h2>Visit</h2>
             <address>{contact.clinic}<br />{contact.address}</address>
           </div>
           <div>
-            <h4>Reach me</h4>
+            <h2>Reach me</h2>
             <ul>
               {contact.phone && <li><a href={`tel:${contact.phoneHref}`}>{contact.phone}</a></li>}
               {contact.email && <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>}
@@ -157,7 +161,7 @@ export function SiteFooter() {
             </ul>
           </div>
           <div>
-            <h4>In a crisis</h4>
+            <h2>In a crisis</h2>
             <p className="crisis">
               Call <strong>999</strong>, or Kaan Pete Roi on{' '}
               <a href="tel:09612119911"><strong className="nowrap">09612-119911</strong></a> (3 pm – 3 am).
@@ -165,7 +169,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="bottom">
-          <p>© {new Date().getFullYear()} Tania Subhashita · Psychologist &amp; counsellor, Dhaka</p>
+          <p>© {hydrated && `${new Date().getFullYear()} `}Tania Subhashita · Psychologist &amp; counsellor, Dhaka</p>
           <p>
             {NAV.map((n, i) => (
               <span key={n.to}>{i > 0 && ' · '}<Link to={n.to}>{n.label}</Link></span>

@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SiteDataProvider, useSiteData } from '../context/SiteDataContext';
+import { useJsonLd } from '../hooks/usePageMeta';
+import { siteGraph } from '../lib/schema';
 import { CrisisHelp, SiteFooter, SiteHeader } from '../site/SiteChrome';
 import '../styles/site.css';
 import '../styles/home.css';
@@ -31,16 +33,28 @@ function LoadingScreen() {
   );
 }
 
+// A prerendered page arrives fully visible; an inline script in its <head> hides the
+// [data-reveal] elements until the page's reveals have set their starting state, so
+// nothing flashes in and then out. Layout effects run child-first, so by now they have.
+function useReleaseReveals() {
+  useLayoutEffect(() => {
+    document.documentElement.classList.remove('reveal-pending');
+  }, []);
+}
+
 function PublicContent() {
-  const { loading } = useSiteData();
+  const { loading, contact, general, home, about } = useSiteData();
   useBodyPage();
+  useReleaseReveals();
+  useJsonLd('site', loading ? null : siteGraph({ contact, general, home, about }));
 
   if (loading) return <LoadingScreen />;
 
   return (
     <div className="site-app">
+      <a className="skip-link" href="#main">Skip to content</a>
       <SiteHeader />
-      <main>
+      <main id="main" tabIndex={-1}>
         <Outlet />
       </main>
       <SiteFooter />

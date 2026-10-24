@@ -141,6 +141,7 @@ export function CountUp({ value }: { value: string }) {
     }));
   }, { dependencies: [value], revertOnUpdate: true });
 
-  // The text is owned by the effect above, never by React, so it can animate freely.
-  return <span ref={ref} />;
+  // React writes the value once, so it is in the prerendered page; after that the effect
+  // above owns the text, so it can animate freely.
+  return <span ref={ref}>{value}</span>;
 }

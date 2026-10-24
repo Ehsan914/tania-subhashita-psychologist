@@ -1,6 +1,5 @@
 // "What people carry away": anonymous notes, labelled only by what they speak to.
-// Privacy: a testimonial's name is never shown; `role` holds its theme ("On feeling safe"),
-// as in the admin's testimonial editor.
+// Privacy: a testimonial has no name at all; `theme` says what it speaks to ("On feeling safe").
 import type { Testimonial } from '../../context/SiteDataContext';
 import { SplitWords } from '../motion';
 
@@ -22,11 +21,11 @@ export default function Voices({ testimonials }: { testimonials: Testimonial[] }
         </div>
         <ul className="notes" id="voice-notes" data-reveal="paper">
           {testimonials.map((t) => (
-            <li key={t.id}>
+            <li key={t._key}>
               <figure>
                 <span className="mark" aria-hidden="true">“</span>
-                <blockquote><p>{t.text}</p></blockquote>
-                {t.role && <figcaption>{t.role}</figcaption>}
+                <blockquote><p>{t.quote}</p></blockquote>
+                {t.theme && <figcaption>{t.theme}</figcaption>}
               </figure>
             </li>
           ))}

@@ -5,15 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr prerender.tsx --outDir dist-server && node dist-server/prerender.js",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@portabletext/react": "^8.0.1",
+    "@sanity/client": "^8.11.0",
+    "@sanity/image-url": "^2.1.1",
     "@vitejs/plugin-react": "^5.0.4",
-    "better-auth": "^1.7.7",
-    "dompurify": "^3.4.16",
+    "google-auth-library": "^11.3.1",
     "gsap": "^3.15.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
@@ -24,6 +26,7 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vercel/node": "^27.0.2",
     "typescript": "~5.8.2"
   },
   "description": "",

@@ -3,7 +3,7 @@
 // `?state=result&score=4#check` opens straight on a result (design review switch).
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import type { AssessmentQuestion, ScoreBand } from '../../context/SiteDataContext';
+import type { AssessmentResult, Statement } from '../../context/SiteDataContext';
 import { SplitWords } from '../motion';
 
 const URL_DEFAULT_SCORE = 4;
@@ -17,7 +17,7 @@ function scoreFromUrl(params: URLSearchParams, total: number): number | null {
 const tickedLabel = (n: number, total: number) => (n ? `${n} of ${total} ticked` : 'Nothing ticked yet');
 
 interface StatementsProps {
-  questions: AssessmentQuestion[];
+  questions: Statement[];
   ticked: ReadonlySet<string>;
   onToggle: (id: string) => void;
   onScore: () => void;
@@ -28,10 +28,10 @@ function Statements({ questions, ticked, onToggle, onScore }: StatementsProps) {
     <div>
       <ul className="statements">
         {questions.map((q, i) => (
-          <li key={q.id}>
+          <li key={q._key}>
             <label className="row">
               <span className="tick">
-                <input type="checkbox" name={`q${i}`} checked={ticked.has(q.id)} onChange={() => onToggle(q.id)} />
+                <input type="checkbox" name={`q${i}`} checked={ticked.has(q._key)} onChange={() => onToggle(q._key)} />
                 <span className="box" />
                 <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" /></svg>
               </span>
@@ -53,7 +53,7 @@ function Statements({ questions, ticked, onToggle, onScore }: StatementsProps) {
 interface ResultProps {
   score: number;
   total: number;
-  bands: ScoreBand[]; // ordered by minScore (API)
+  bands: AssessmentResult[]; // ordered by fromScore (SITE_QUERY)
   focusOnShow: boolean;
   onReset: () => void;
 }
@@ -61,7 +61,7 @@ interface ResultProps {
 function Result({ score, total, bands, focusOnShow, onReset }: ResultProps) {
   const [lit, setLit] = useState(false);
   const bandRef = useRef<HTMLHeadingElement>(null);
-  const band = bands.find((b) => score >= b.minScore && score <= b.maxScore);
+  const band = bands.find((b) => score >= b.fromScore && score <= b.toScore);
   const isHighest = band !== undefined && band === bands.at(-1);
 
   // light the bars a frame after they render, so their staggered transition plays
@@ -83,8 +83,8 @@ function Result({ score, total, bands, focusOnShow, onReset }: ResultProps) {
         ))}
       </div>
       <p className="meter-label">{score} of {total} sound like this week</p>
-      {band && <h3 className="band" tabIndex={-1} ref={bandRef}>{band.label}</h3>}
-      {band && <p className="message">{band.message}</p>}
+      {band && <h3 className="band" tabIndex={-1} ref={bandRef}>{band.headline}</h3>}
+      {band?.message && <p className="message">{band.message}</p>}
       {isHighest && (
         <p className="crisis-line">
           If you are having thoughts of harming yourself, please call <a href="tel:999">999</a> or Kaan Pete Roi on{' '}
@@ -100,8 +100,8 @@ function Result({ score, total, bands, focusOnShow, onReset }: ResultProps) {
 }
 
 interface SelfCheckProps {
-  questions: AssessmentQuestion[];
-  bands: ScoreBand[];
+  questions: Statement[];
+  bands: AssessmentResult[];
 }
 
 export default function SelfCheck({ questions, bands }: SelfCheckProps) {

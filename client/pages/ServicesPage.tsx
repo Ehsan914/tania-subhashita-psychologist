@@ -9,7 +9,9 @@ import { SplitWords, useReveal } from '../site/motion';
 import { TherapyGuide } from '../site/therapies/TherapyGuide';
 import { ALL_AREAS, TherapyList } from '../site/therapies/TherapyList';
 import { areasOf, linkPrograms } from '../site/therapies/therapyData';
-import { usePageMeta } from '../hooks/usePageMeta';
+import { usePageMeta, useJsonLd } from '../hooks/usePageMeta';
+import { useHydrated } from '../hooks/useHydrated';
+import { pageGraph } from '../lib/schema';
 
 const VIEW_OPTIONS = [
   { value: 'guide', label: 'Help me choose' },
@@ -28,7 +30,8 @@ function Essentials() {
 }
 
 export default function ServicesPage() {
-  usePageMeta('Therapies — Tania Subhashita, Psychologist', 'Twenty-six areas of care, from anxiety, depression and trauma to addiction, couple counselling and exam phobia.');
+  usePageMeta('Therapies in Dhaka & Online | Tania Subhashita, Psychologist', 'Twenty-six areas of care, from anxiety, depression and trauma to addiction and couple counselling, in New Eskaton, Dhaka, or online.');
+  useJsonLd('page', pageGraph('CollectionPage', '/services', 'Therapies', [{ name: 'Therapies', path: '/services' }]));
   const { services, programs } = useSiteData();
   const [params] = useSearchParams();
   const { hash } = useLocation();
@@ -41,12 +44,15 @@ export default function ServicesPage() {
   const areas = useMemo(() => areasOf(services), [services]);
   const programFor = useMemo(() => linkPrograms(programs), [programs]);
 
-  const view = params.get('view') === 'list' ? 'list' : 'guide';
-  const target = services.find((s) => s.slug === hash.slice(1));
-  const requested = params.get('c');
+  // The prerendered page is the plain guide; the URL's view, area and therapy apply from the
+  // first render after hydration, so the two renders agree.
+  const hydrated = useHydrated();
+  const view = hydrated && params.get('view') === 'list' ? 'list' : 'guide';
+  const target = hydrated ? services.find((s) => s.slug === hash.slice(1)) : undefined;
+  const requested = hydrated ? params.get('c') : null;
   const area = target?.category ?? (requested && areas.includes(requested) ? requested : null);
 
-  useReveal(rootRef);
+  useReveal(rootRef, [hydrated]);
 
   const replaceUrl = (search: URLSearchParams, keepHash: boolean) => {
     const qs = search.toString();

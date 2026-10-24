@@ -2,7 +2,10 @@
 // walks into the room (design-demo/calm-elegant/site/assets/home.js, "hero").
 import { useRef, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
-import type { HeroData } from '../../context/SiteDataContext';
+import { PortableText, type PortableTextComponents } from '@portabletext/react';
+import type { ReactNode } from 'react';
+import type { HomePage } from '../../context/SiteDataContext';
+import { imageUrl } from '../../lib/sanity';
 import { gsap, isMotionOff, ScrollTrigger, useGSAP } from '../motion';
 
 const DEFAULT_PHOTO = '/images/room.jpg';
@@ -19,6 +22,21 @@ const FALLBACK = {
 // How long the pinned stage lasts, as a share of the viewport height.
 const STAGE_END = { wide: '+=95%', narrow: '+=70%' };
 const SCRUB_SMOOTHING = 0.6;
+const PHOTO_WIDTH = 2000;
+
+// The headline holds one block per row; italic (em) spans render as <em> by default.
+const HEADLINE: PortableTextComponents = {
+  block: { normal: ({ children }: { children?: ReactNode }) => <span className="l"><span>{children}</span></span> },
+};
+
+function FallbackHeadline() {
+  return (
+    <>
+      <span className="l"><span>{FALLBACK.titleLine1}</span></span>
+      <span className="l"><span>{FALLBACK.titleLine2} <em>{FALLBACK.titleLine3}</em></span></span>
+    </>
+  );
+}
 
 // Photo 1 → 1.24, headline 1 → 0.86, copy fades, the linen wash covers the room, then the
 // photo goes. Scrubbed, so it reverses on the way back up. No pinning with motion off.
@@ -54,37 +72,33 @@ function useScrollStory(scope: RefObject<HTMLElement | null>) {
   }, { scope });
 }
 
-export default function HomeHero({ hero }: { hero: HeroData | null }) {
+export default function HomeHero({ home }: { home: HomePage | null }) {
   const ref = useRef<HTMLElement>(null);
   useScrollStory(ref);
 
-  const photo = hero?.portraitImageUrl || DEFAULT_PHOTO;
-  const line1 = hero?.titleLine1 || FALLBACK.titleLine1;
-  const line2 = hero ? hero.titleLine2 : FALLBACK.titleLine2;
-  const accent = hero ? hero.titleLine3 : FALLBACK.titleLine3;
-  const hasSecondLine = Boolean(line2 || accent);
+  const photo = imageUrl(home?.heroImage, PHOTO_WIDTH);
+  const headline = home?.heroHeadline;
 
   return (
     <section className="hero" aria-label="Introduction" ref={ref}>
       <div className="photo">
-        <img src={photo} alt={photo === DEFAULT_PHOTO ? DEFAULT_PHOTO_ALT : ''} />
+        {photo
+          ? <img src={photo} alt={home?.heroImage?.alt ?? ''} />
+          : <img src={DEFAULT_PHOTO} alt={DEFAULT_PHOTO_ALT} />}
       </div>
       <div className="shade" />
       <div className="wash" />
       <div className="copy wrap">
         <h1 className="display">
-          <span className="l"><span>{line1}</span></span>
-          {hasSecondLine && (
-            <span className="l"><span>{line2}{line2 && accent && ' '}{accent && <em>{accent}</em>}</span></span>
-          )}
+          {headline?.length ? <PortableText value={headline} components={HEADLINE} /> : <FallbackHeadline />}
         </h1>
         <div className="hero-fade">
-          <p className="lede">{hero?.description || FALLBACK.description}</p>
+          <p className="lede">{home?.heroIntro || FALLBACK.description}</p>
           <div className="actions">
             <Link className="btn" to="/book">
-              {hero?.ctaPrimaryText || FALLBACK.ctaPrimaryText} <span className="arrow" aria-hidden="true">→</span>
+              {home?.heroPrimaryButton || FALLBACK.ctaPrimaryText} <span className="arrow" aria-hidden="true">→</span>
             </Link>
-            <Link className="link" to="/services">{hero?.ctaSecondaryText || FALLBACK.ctaSecondaryText}</Link>
+            <Link className="link" to="/services">{home?.heroSecondaryLink || FALLBACK.ctaSecondaryText}</Link>
           </div>
         </div>
       </div>

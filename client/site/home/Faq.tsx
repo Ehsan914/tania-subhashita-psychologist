@@ -24,7 +24,7 @@ export default function Faq({ faqs }: { faqs: FAQItem[] }) {
           <p className="lede" data-reveal="rise">The questions people most often ask before a first session.</p>
         </div>
         <div className="items" data-reveal="rise">
-          {faqs.map((faq, i) => <Item key={faq.id} faq={faq} defaultOpen={i === 0} />)}
+          {faqs.map((faq, i) => <Item key={faq._id} faq={faq} defaultOpen={i === 0} />)}
         </div>
       </div>
     </section>

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { ServiceData } from '../../context/SiteDataContext';
 import { SplitWords } from '../motion';
+import { serviceHref } from '../therapies/therapyData';
 
 // The order the design lists the areas in (DB spelling). Any other category follows.
 const CATEGORY_ORDER = ['Mood & Emotion', 'Self & Relationships', 'Addiction & Behavior', 'Specialized Care'];
@@ -49,7 +50,7 @@ export default function Concerns({ services }: { services: ServiceData[] }) {
               <h3 className="eyebrow" data-reveal="rise">{category}</h3>
               <ul className="rule-list" data-reveal="list">
                 {items.map((s) => (
-                  <li key={s.id}><Link to={`/services#${s.slug}`}>{s.name}</Link></li>
+                  <li key={s._id}><Link to={serviceHref(s.slug)}>{s.name}</Link></li>
                 ))}
               </ul>
             </div>

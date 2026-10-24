@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import type { CTAData } from '../../context/SiteDataContext';
+import type { HomePage } from '../../context/SiteDataContext';
 import { SplitWords } from '../motion';
 import { accentTail } from './accent';
 
@@ -10,17 +10,17 @@ const FALLBACK = {
 };
 const ACCENT_WORDS = 2;
 
-export default function Closing({ cta }: { cta: CTAData | null }) {
-  const subtitle = cta ? cta.subtitle : FALLBACK.subtitle;
+export default function Closing({ home }: { home: HomePage | null }) {
+  const subtitle = home ? home.ctaText : FALLBACK.subtitle;
   return (
     <section className="closing">
       <div className="wrap">
         <h2 className="h1" data-reveal="split">
-          <SplitWords>{accentTail(cta?.heading || FALLBACK.heading, ACCENT_WORDS)}</SplitWords>
+          <SplitWords>{accentTail(home?.ctaHeadline || FALLBACK.heading, ACCENT_WORDS)}</SplitWords>
         </h2>
         {subtitle && <p className="lede" data-reveal="rise">{subtitle}</p>}
         <Link className="btn" to="/book" data-reveal="rise">
-          {cta?.buttonText || FALLBACK.buttonText} <span className="arrow" aria-hidden="true">→</span>
+          {home?.ctaButton || FALLBACK.buttonText} <span className="arrow" aria-hidden="true">→</span>
         </Link>
       </div>
     </section>

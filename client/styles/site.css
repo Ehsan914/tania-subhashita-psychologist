@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap');
+/* Manrope is loaded by a <link> in index.html, so the font request starts with the page instead of after this file. */
 /* Ported from design-demo/calm-elegant/site/assets/site.css. Keep in step with the design. */
 /* Afternoon Room — shared tokens, layout and controls */
 
@@ -201,13 +201,14 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
   & .top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 48px; padding-bottom: 64px; border-bottom: 1px solid rgba(248, 239, 238, .12); }
   & .sign { font: 400 clamp(30px, 3vw, 40px)/1.1 var(--display); color: var(--bg); }
   & .sign em { color: #E7A9B9; }
-  & h4 { font: 600 12px/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: rgba(248, 239, 238, .5); margin-bottom: 18px; }
+  /* .6, not the design's .5: at .5 the small text missed WCAG AA contrast (4.2:1) on --night */
+  & h2 { font: 600 12px/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: rgba(248, 239, 238, .6); margin-bottom: 18px; }
   & ul { list-style: none; display: grid; gap: 8px; }
   & a:hover { color: var(--bg); }
   & address { font-style: normal; line-height: 1.7; }
   & .crisis { color: var(--bg); }
   & .crisis strong { font-weight: 600; }
-  & .bottom { display: flex; justify-content: space-between; gap: 24px; padding-top: 28px; font-size: 13.5px; color: rgba(248, 239, 238, .5); }
+  & .bottom { display: flex; justify-content: space-between; gap: 24px; padding-top: 28px; font-size: 13.5px; color: rgba(248, 239, 238, .6); }
 }
 
 /* ── crisis panel ───────────────────────────── */

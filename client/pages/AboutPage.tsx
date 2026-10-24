@@ -5,7 +5,8 @@ import { PageHead } from '../site/inner/PageHead';
 import { AboutBio } from '../site/inner/AboutBio';
 import { Credentials } from '../site/inner/Credentials';
 import { CtaBand } from '../site/inner/CtaBand';
-import { usePageMeta } from '../hooks/usePageMeta';
+import { usePageMeta, useJsonLd } from '../hooks/usePageMeta';
+import { pageGraph, personRef } from '../lib/schema';
 
 // "Meet Tania Subhashita" → "Meet Tania <em>Subhashita.</em>", as the design sets it.
 function emphasiseLastWord(text: string) {
@@ -16,20 +17,21 @@ function emphasiseLastWord(text: string) {
 }
 
 export default function AboutPage() {
-  usePageMeta('About Tania Subhashita — Psychologist, Dhaka', "Tania Subhashita holds Honours and Master's degrees in Psychology and a Professional Master's in Clinical Social Work from the University of Dhaka.");
-  const { about, credentials } = useSiteData();
+  usePageMeta('About Tania Subhashita — Psychologist in Dhaka', "Tania Subhashita holds Honours and Master's degrees in Psychology and a Professional Master's in Clinical Social Work from the University of Dhaka.");
+  useJsonLd('page', pageGraph('ProfilePage', '/about', 'About Tania Subhashita', [{ name: 'About', path: '/about' }], [], personRef));
+  const { about } = useSiteData();
   const rootRef = useRef<HTMLDivElement>(null);
-  useReveal(rootRef, [about, credentials]);
+  useReveal(rootRef, [about]);
 
   return (
     <div ref={rootRef}>
       <PageHead
-        eyebrow={about?.tagline || 'About'}
-        title={emphasiseLastWord(about?.heading || 'Meet Tania Subhashita')}
+        eyebrow={about?.eyebrow || 'About'}
+        title={emphasiseLastWord(about?.headline || 'Meet Tania Subhashita')}
         lede="Psychologist and clinical psycho-social counselor in Dhaka, helping people heal, grow and thrive."
       />
       <AboutBio about={about} />
-      <Credentials credentials={credentials} />
+      <Credentials credentials={about?.credentials ?? []} />
       <CtaBand
         title={<>Let&rsquo;s see if we&rsquo;re a <em>good fit.</em></>}
         lede="A free 20-minute conversation, in person or online, with no obligation to continue."
