@@ -1,13 +1,6 @@
 // Booking logic for the Book page: settings parsing, the day strip, validation and the
 // WhatsApp hand-off. Kept free of React so the page only wires state to markup.
-import type { ServiceData } from '../../context/SiteDataContext';
-
-export interface BookingSettings {
-  whatsappNumber: string;
-  timeSlots: string;
-  sessionDurations: string;
-  introText: string;
-}
+import type { BookingSettings, ServiceData } from '../../context/SiteDataContext';
 
 export interface BookingOptions {
   whatsappNumber: string;
@@ -16,22 +9,22 @@ export interface BookingOptions {
   introText: string;
 }
 
-// The design's options, used until booking settings are saved in the admin.
+// The design's options, used until Booking settings are published in Sanity.
 const FALLBACK_WHATSAPP = '8801580700700';
-const FALLBACK_SLOTS = '10:00 am\n11:00 am\n2:00 pm\n4:00 pm\n6:00 pm\n7:00 pm';
-const FALLBACK_DURATIONS = '20-min intro (Free)\n60-min session (Standard)';
+const FALLBACK_SLOTS = ['10:00 am', '11:00 am', '2:00 pm', '4:00 pm', '6:00 pm', '7:00 pm'];
+const FALLBACK_DURATIONS = ['20-min intro (Free)', '60-min session (Standard)'];
 
-const lines = (value: string | undefined, fallback: string) => {
-  const parsed = (value ?? '').split('\n').map((x) => x.trim()).filter(Boolean);
-  return parsed.length > 0 ? parsed : fallback.split('\n');
+const listOr = (values: string[] | undefined, fallback: string[]) => {
+  const parsed = (values ?? []).map((x) => x.trim()).filter(Boolean);
+  return parsed.length > 0 ? parsed : fallback;
 };
 
 export function parseSettings(settings: BookingSettings | null): BookingOptions {
   return {
     whatsappNumber: (settings?.whatsappNumber ?? '').replace(/\D/g, '') || FALLBACK_WHATSAPP,
-    timeSlots: lines(settings?.timeSlots, FALLBACK_SLOTS),
-    sessionDurations: lines(settings?.sessionDurations, FALLBACK_DURATIONS),
-    introText: settings?.introText?.trim() ?? '',
+    timeSlots: listOr(settings?.times, FALLBACK_SLOTS),
+    sessionDurations: listOr(settings?.sessionOptions, FALLBACK_DURATIONS),
+    introText: settings?.intro?.trim() ?? '',
   };
 }
 
@@ -59,7 +52,7 @@ const FIRST_OFFSET = 1;
 export const DEFAULT_DAY_INDEX = 1;
 
 export interface BookingDay {
-  iso: string; // YYYY-MM-DD in the visitor's calendar, as /api/book expects
+  iso: string; // YYYY-MM-DD in the visitor's calendar, as the booking function expects
   weekday: string;
   date: number;
   month: string;

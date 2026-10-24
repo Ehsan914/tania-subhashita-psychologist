@@ -1,6 +1,7 @@
 // What the Book page starts with: ?service= and ?program= from the Therapies and
 // Programs pages, or router state ({ serviceId, sessionType, message }) from older links.
 import type { ProgramData, ServiceData } from '../../context/SiteDataContext';
+import { serviceForProgram } from '../therapies/therapyData';
 
 export interface BookingPreset {
   service: string;
@@ -25,7 +26,7 @@ export function readPreset(
 ): BookingPreset {
   const program = programs.find((p) => p.slug === params.get('program')) ?? null;
   const exists = (slug: string | null | undefined): slug is string => !!slug && services.some((s) => s.slug === slug);
-  const candidates = [params.get('service'), program?.linkedServiceSlug, stateField(state, 'serviceId'), DEFAULT_SERVICE];
+  const candidates = [params.get('service'), program && serviceForProgram(program.slug), stateField(state, 'serviceId'), DEFAULT_SERVICE];
 
   return {
     service: candidates.find(exists) ?? services[0]?.slug ?? '',

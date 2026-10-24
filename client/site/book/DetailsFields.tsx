@@ -47,7 +47,7 @@ export function DetailsFields({ details, errors, onChange }: DetailsFieldsProps)
       <div className="field">
         <label htmlFor="b-msg">Anything you'd like Tania to know? <span style={OPTIONAL_STYLE}>(optional)</span></label>
         <textarea
-          className="input" id="b-msg" name="message" rows={3} maxLength={5000}
+          className="input" id="b-msg" name="message" rows={3} maxLength={2000}
           placeholder="A sentence is plenty — or leave it for when we talk."
           value={details.message} onChange={(e) => onChange('message', e.target.value)}
         />

@@ -1,15 +1,15 @@
 // Book a session (design: site/book.html + assets/book.js). Choices update a live summary;
-// the request is saved through /api/book, then a confirmation offers the WhatsApp hand-off.
+// the request goes to the bookings Sheet (api/book.ts), then a confirmation offers the WhatsApp hand-off.
 import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useSiteData } from '../context/SiteDataContext';
 import { SplitWords, isMotionOff, useReveal } from '../site/motion';
 import { Segmented } from '../site/controls';
 import { useContactDetails } from '../site/SiteChrome';
-import { submitBooking, useBookingOptions } from '../site/book/api';
+import { submitBooking } from '../site/book/api';
 import {
   DEFAULT_DAY_INDEX, DETAIL_FIELDS, defaultSession, defaultSlot, formatLabel, groupServices, isFreeSession,
-  splitDuration, upcomingDays, validateDetails, whatsappLink,
+  parseSettings, splitDuration, upcomingDays, validateDetails, whatsappLink,
   type BookingChoice, type BookingFormat, type ClientDetails, type DetailErrors,
 } from '../site/book/booking';
 import { programHint, readPreset } from '../site/book/preset';
@@ -17,7 +17,9 @@ import { BookingSummary } from '../site/book/BookingSummary';
 import { BookingConfirmation } from '../site/book/BookingConfirmation';
 import { DetailsFields } from '../site/book/DetailsFields';
 import { WhenPicker } from '../site/book/WhenPicker';
-import { usePageMeta } from '../hooks/usePageMeta';
+import { usePageMeta, useJsonLd } from '../hooks/usePageMeta';
+import { useHydrated } from '../hooks/useHydrated';
+import { pageGraph } from '../lib/schema';
 
 const LEDE = 'Your first 20 minutes are free, with no obligation to continue. Choose what suits you and Tania will confirm on WhatsApp.';
 const FORMAT_OPTIONS = [
@@ -29,16 +31,33 @@ const CONFIRMATION_STYLE = { paddingBottom: 'var(--section)', paddingTop: 'calc(
 interface SentRequest {
   id: string;
   details: ClientDetails;
+  saved: boolean; // false: the Sheet could not take it, so WhatsApp is the only copy
+}
+
+// Hidden from people and screen readers; a bot that fills every field fills this one too.
+function Honeypot({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <div className="visually-hidden" aria-hidden="true">
+      <label htmlFor="b-website">Website</label>
+      <input
+        id="b-website" name="website" type="text" autoComplete="off" tabIndex={-1}
+        value={value} onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
 }
 
 export default function BookPage() {
-  usePageMeta('Book a session — Tania Subhashita, Psychologist', 'Request a free 20-minute consultation or a 60-minute session, in person at MIND CARE or online.');
+  usePageMeta('Book a Session in Dhaka or Online | Tania Subhashita, Psychologist', 'Request a free 20-minute consultation or a 60-minute session, in person at MIND CARE, New Eskaton, Dhaka, or online by Zoom or Google Meet.');
+  useJsonLd('page', pageGraph('WebPage', '/book', 'Book a session', [{ name: 'Book a session', path: '/book' }]));
+  // the form starts from today's date and the query string, which the prerender cannot know
+  const hydrated = useHydrated();
   const rootRef = useRef<HTMLDivElement>(null);
   const [params] = useSearchParams();
   const location = useLocation();
-  const { services, programs } = useSiteData();
-  const { clinic } = useContactDetails();
-  const options = useBookingOptions();
+  const { services, programs, booking } = useSiteData();
+  const { clinic, phone, phoneHref } = useContactDetails();
+  const options = useMemo(() => parseSettings(booking), [booking]);
   const days = useMemo(() => upcomingDays(), []);
   const groups = useMemo(() => groupServices(services), [services]);
 
@@ -50,13 +69,14 @@ export default function BookPage() {
   const [timePick, setTimePick] = useState('');
   const [details, setDetails] = useState<ClientDetails>({ name: '', phone: '', email: '', message: preset.message });
   const [errors, setErrors] = useState<DetailErrors>({});
+  const [website, setWebsite] = useState('');
   const [sending, setSending] = useState(false);
   const [serverError, setServerError] = useState('');
   const [sent, setSent] = useState<SentRequest | null>(null);
   const isPreview = params.get('state') === 'success';
-  const showConfirmation = sent !== null || isPreview;
+  const showConfirmation = hydrated && (sent !== null || isPreview);
 
-  // Settings can arrive after the first paint; a pick that is no longer offered falls back.
+  // A pick that is not offered (an option renamed since the link was made) falls back.
   const { sessionDurations, timeSlots } = options;
   const session = sessionDurations.includes(sessionPick) ? sessionPick : defaultSession(sessionDurations, preset.wantsFull);
   const time = timeSlots.includes(timePick) ? timePick : defaultSlot(timeSlots);
@@ -69,7 +89,7 @@ export default function BookPage() {
     time,
   };
 
-  useReveal(rootRef, [showConfirmation]);
+  useReveal(rootRef, [showConfirmation, hydrated]);
 
   const setDetail = (key: keyof ClientDetails, value: string) => {
     setDetails((prev) => ({ ...prev, [key]: value }));
@@ -97,19 +117,23 @@ export default function BookPage() {
       clientName: trimmed.name,
       clientPhone: trimmed.phone,
       clientEmail: trimmed.email,
-      service,
+      // the therapy's name, as Tania reads it in the Sheet
+      service: choice.service,
       sessionType: session,
       format,
       preferredDate: chosenDay.iso,
       preferredTime: time,
       message: trimmed.message,
+      website,
     });
     setSending(false);
-    if (!result.ok) {
+    if (result.status === 'error') {
       setServerError(result.error);
       return;
     }
-    setSent({ id: result.id, details: trimmed });
+    setSent(result.status === 'saved'
+      ? { id: result.id, details: trimmed, saved: true }
+      : { id: '', details: trimmed, saved: false });
     window.scrollTo({ top: 0, behavior: isMotionOff() ? 'auto' : 'smooth' });
   };
 
@@ -120,8 +144,11 @@ export default function BookPage() {
           <BookingConfirmation
             choice={choice}
             firstName={sent?.details.name.split(' ')[0]}
-            reference={sent?.id.slice(0, 10)}
+            reference={sent?.id || undefined}
             whatsappHref={sent ? whatsappLink(options.whatsappNumber, choice, sent.details) : undefined}
+            isUnsaved={sent !== null && !sent.saved}
+            phone={phone}
+            phoneHref={phoneHref}
           />
         </section>
       </div>
@@ -138,6 +165,7 @@ export default function BookPage() {
         <p className="lede" data-reveal="rise">{options.introText || LEDE}</p>
       </header>
 
+      {!hydrated ? <section className="wrap" style={{ minHeight: '100vh' }} aria-hidden="true" /> : (
       <section className="wrap" style={{ paddingBottom: 'var(--section)' }}>
         <div className="book-grid">
           <form className="book-form" noValidate onSubmit={onSubmit}>
@@ -179,6 +207,7 @@ export default function BookPage() {
 
             <WhenPicker days={days} day={chosenDay.iso} onDay={setDay} slots={timeSlots} time={time} onTime={setTimePick} />
             <DetailsFields details={details} errors={errors} onChange={setDetail} />
+            <Honeypot value={website} onChange={setWebsite} />
 
             <div className="submit-row">
               {serverError && (
@@ -198,6 +227,7 @@ export default function BookPage() {
           <BookingSummary choice={choice} isFree={isFreeSession(session, sessionDurations)} />
         </div>
       </section>
+      )}
     </div>
   );
 }
