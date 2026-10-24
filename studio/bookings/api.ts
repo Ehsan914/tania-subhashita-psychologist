@@ -33,6 +33,7 @@ export type ApiErrorKind =
   | 'network' // no answer at all
   | 'gone' // 404: the row left the Sheet
   | 'rejected' // 400: the change isn't allowed from the row's current status
+  | 'not-connected' // 503 from a function with no Sheet configured yet
   | 'server' // 5xx and anything else
 
 export class ApiError extends Error {
@@ -59,9 +60,10 @@ async function call<T>(token: string | undefined, init: RequestInit = {}): Promi
   } catch {
     throw new ApiError('network', 'Could not reach the bookings service. Check the connection and try again.')
   }
-  const body = (await res.json().catch(() => ({}))) as {error?: string}
+  const body = (await res.json().catch(() => ({}))) as {error?: string; code?: string}
   if (res.ok) return body as T
   const message = body.error ?? `The bookings service answered ${res.status}.`
+  if (body.code === 'not-connected') throw new ApiError('not-connected', message)
   if (res.status === 401 || res.status === 403) throw new ApiError('denied', message)
   if (res.status === 404) throw new ApiError('gone', message)
   if (res.status === 400) throw new ApiError('rejected', message)

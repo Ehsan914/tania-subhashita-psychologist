@@ -62,7 +62,7 @@ export function BookingsTool() {
         toast.push({status: 'success', title: DONE[status](booking.name || 'The client')})
       } catch (err) {
         const apiError = asApiError(err)
-        if (apiError.kind === 'denied' || apiError.kind === 'token' || apiError.kind === 'config') setError(apiError)
+        if (apiError.kind === 'denied' || apiError.kind === 'token' || apiError.kind === 'config' || apiError.kind === 'not-connected') setError(apiError)
         else toast.push({status: 'error', title: 'Not changed', description: apiError.message})
       } finally {
         setBusy(undefined)

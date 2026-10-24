@@ -190,6 +190,7 @@ function BookingCard({booking: b, busy, onSetStatus}: {booking: Booking} & Pick<
 }
 
 function ErrorNotice({error, userId, onRetry}: {error: ApiError; userId?: string; onRetry: () => void}) {
+  if (error.kind === 'not-connected') return <NotConnectedNotice />
   const denied = error.kind === 'denied'
   const retryable = error.kind === 'network' || error.kind === 'server'
   return (
@@ -214,6 +215,21 @@ function ErrorNotice({error, userId, onRetry}: {error: ApiError; userId?: string
           )}
         </Stack>
       </Flex>
+    </Card>
+  )
+}
+
+// Not a fault: the site works and takes bookings by WhatsApp until the Sheet is wired up.
+function NotConnectedNotice() {
+  return (
+    <Card padding={4} radius={3} border tone="primary">
+      <Stack gap={3}>
+        <Text weight="semibold">Not connected to Google Sheets yet</Text>
+        <Text size={1} muted>
+          Booking requests from the website will be listed here once the bookings Sheet is set up.
+          Until then, clients still reach Tania through the WhatsApp button on the booking page.
+        </Text>
+      </Stack>
     </Card>
   )
 }

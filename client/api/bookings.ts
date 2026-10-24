@@ -149,7 +149,8 @@ export function createHandler(deps: Deps) {
     const sheet = openSheet(deps);
     if (!sheet) {
       console.error('Bookings dashboard: BOOKINGS_SHEET_ID or GOOGLE_SERVICE_ACCOUNT_JSON is missing or unreadable.');
-      res.status(503).json({ error: UNAVAILABLE });
+      // only signed-in, allowlisted callers get this far, so naming the cause leaks nothing
+      res.status(503).json({ error: 'Bookings aren’t connected to Google Sheets yet.', code: 'not-connected' });
       return;
     }
     if (req.method === 'GET') await list(res, sheet, deps);
