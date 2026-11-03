@@ -12,7 +12,7 @@ export interface BookingOptions {
 // The design's options, used until Booking settings are published in Sanity.
 const FALLBACK_WHATSAPP = '8801580700700';
 const FALLBACK_SLOTS = ['10:00 am', '11:00 am', '2:00 pm', '4:00 pm', '6:00 pm', '7:00 pm'];
-const FALLBACK_DURATIONS = ['20-min intro (Free)', '60-min session (Standard)'];
+const FALLBACK_DURATIONS = ['First session (+20 min free)', 'Follow-up (60 min)'];
 
 const listOr = (values: string[] | undefined, fallback: string[]) => {
   const parsed = (values ?? []).map((x) => x.trim()).filter(Boolean);
@@ -28,23 +28,22 @@ export function parseSettings(settings: BookingSettings | null): BookingOptions 
   };
 }
 
-// "20-min intro (Free)" → label "20-min intro", sub "Free".
+// "First session (+20 min free)" → label "First session", sub "+20 min free".
 export function splitDuration(duration: string): { label: string; sub?: string } {
   const match = /^(.*?)\s*\(([^)]+)\)\s*$/.exec(duration);
   return match ? { label: match[1], sub: match[2] } : { label: duration };
 }
 
-export const isFreeSession = (duration: string, durations: string[]) =>
-  durations.some((d) => /free/i.test(d)) ? /free/i.test(duration) : duration === durations[0];
+// The first session carries 20 extra minutes; it is the option named "first", else the first listed.
+export const isFirstSession = (duration: string, durations: string[]) =>
+  durations.some((d) => /first/i.test(d)) ? /first/i.test(duration) : duration === durations[0];
 
 // The design pre-selects the fourth time; fewer slots fall back to the last one.
 const DEFAULT_SLOT_INDEX = 3;
 export const defaultSlot = (slots: string[]) => slots[Math.min(DEFAULT_SLOT_INDEX, slots.length - 1)] ?? '';
 
-export function defaultSession(durations: string[], wantsFull: boolean): string {
-  if (!wantsFull) return durations[0] ?? '';
-  return durations.find((d) => !isFreeSession(d, durations)) ?? durations[0] ?? '';
-}
+export const defaultSession = (durations: string[]) =>
+  durations.find((d) => isFirstSession(d, durations)) ?? durations[0] ?? '';
 
 // ── day strip: the next 12 days, starting tomorrow, so no past day is ever offered ──
 const DAYS_AHEAD = 12;

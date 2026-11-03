@@ -92,7 +92,7 @@ function Result({ score, total, bands, focusOnShow, onReset }: ResultProps) {
         </p>
       )}
       <div className="actions">
-        <Link className="btn" to="/book">Book a free consult <span className="arrow" aria-hidden="true">→</span></Link>
+        <Link className="btn" to="/book">Book a session <span className="arrow" aria-hidden="true">→</span></Link>
         <button className="link" type="button" onClick={onReset}>Start again</button>
       </div>
     </div>

@@ -83,7 +83,7 @@ export function TherapyGuide({ areas, area, services, programFor, targetSlug, on
       <h2 className="calm-step" id="step-1"><span>1</span>What feels closest right now?</h2>
       <AreaPicker areas={areas} value={area} onChoose={choose} />
       <Link className="unsure" to="/book">
-        <span><strong>I'm not sure</strong>That's completely fine. A free 20-minute conversation helps us find it together.</span>
+        <span><strong>I'm not sure</strong>That's completely fine. Your first session has 20 extra minutes, free, to find it together.</span>
         <span className="arrow" aria-hidden="true">→</span>
       </Link>
 

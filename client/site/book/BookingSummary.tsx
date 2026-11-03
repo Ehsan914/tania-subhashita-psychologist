@@ -34,15 +34,15 @@ export const CHOICE_LINES: [keyof BookingChoice, string][] = [
   ['time', 'Time'],
 ];
 
-export function BookingSummary({ choice, isFree }: { choice: BookingChoice; isFree: boolean }) {
+export function BookingSummary({ choice, isFirst }: { choice: BookingChoice; isFirst: boolean }) {
   return (
     <aside className="summary" aria-live="polite" data-reveal="rise">
       <h2>Your request</h2>
       <dl>
         {CHOICE_LINES.map(([key, term]) => <SummaryLine key={key} term={term} value={choice[key]} />)}
       </dl>
-      <p className="free" hidden={!isFree}>
-        <strong>The first 20 minutes are free</strong>A chance to talk and see whether we're a good fit.
+      <p className="free" hidden={!isFirst}>
+        <strong>20 extra minutes, free</strong>Your first session runs longer, so there's time to get to know each other.
       </p>
     </aside>
   );

@@ -91,8 +91,8 @@ export default function ServicePage() {
           <section data-reveal="rise">
             <h2>How sessions work</h2>
             <p>
-              Sessions last 60 minutes, and the first 20 minutes are free, so you can see whether working together feels right
-              before committing to anything. You can come in person to {contact.clinic || 'the chamber'} in New Eskaton, Dhaka, or meet
+              Sessions last 60 minutes, and your first session includes 20 extra minutes, free, so there is time to get to know
+              each other. You can come in person to {contact.clinic || 'the chamber'} in New Eskaton, Dhaka, or meet
               online by Zoom or Google Meet from anywhere in Bangladesh.
             </p>
             <p>
@@ -121,7 +121,7 @@ export default function ServicePage() {
           <dl>
             <div><dt>In person</dt><dd>{contact.clinic && <>{contact.clinic}, </>}{contact.address || 'New Eskaton, Dhaka'}</dd></div>
             <div><dt>Online</dt><dd>Zoom or Google Meet, anywhere in Bangladesh</dd></div>
-            <div><dt>Session</dt><dd>60 minutes · first 20 minutes free</dd></div>
+            <div><dt>Session</dt><dd>60 minutes · 20 extra minutes free in the first</dd></div>
             {contact.hours && <div><dt>Hours</dt><dd>{contact.hours}</dd></div>}
           </dl>
           <Link className="btn" to={bookHref(service.slug)}>

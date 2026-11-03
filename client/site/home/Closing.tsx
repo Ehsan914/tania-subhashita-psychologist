@@ -6,7 +6,7 @@ import { accentTail } from './accent';
 const FALLBACK = {
   heading: "Wherever you are right now, you don't have to stay there.",
   subtitle: 'The next chapter can start with one unhurried conversation, with no pressure to continue.',
-  buttonText: 'Book a free consult',
+  buttonText: 'Book a session',
 };
 const ACCENT_WORDS = 2;
 
