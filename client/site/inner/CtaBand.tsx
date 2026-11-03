@@ -1,4 +1,4 @@
-// The closing band that ends the inner pages with the free-consult invitation.
+// The closing band that ends the inner pages with the booking invitation.
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { SplitWords } from '../motion';
@@ -17,7 +17,7 @@ export function CtaBand({ title, lede }: CtaBandProps) {
           <p className="lede" data-reveal="rise">{lede}</p>
         </div>
         <Link className="btn" to="/book" data-reveal="rise">
-          Book a free consult <span className="arrow" aria-hidden="true">→</span>
+          Book a session <span className="arrow" aria-hidden="true">→</span>
         </Link>
       </div>
     </section>

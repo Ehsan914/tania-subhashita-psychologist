@@ -42,7 +42,7 @@ export function JournalArticle({ post, others }: { post: BlogPostData; others: B
           <div className="body" data-reveal="rise"><PostBody body={post.body} /></div>
           <aside className="aside-cta" data-reveal="rise">
             <strong>Would it help to talk it through?</strong>
-            <Link className="btn" to="/book">Book a free consult <span className="arrow" aria-hidden="true">→</span></Link>
+            <Link className="btn" to="/book">Book a session <span className="arrow" aria-hidden="true">→</span></Link>
           </aside>
         </div>
       </article>

@@ -34,7 +34,7 @@ export default function AboutPage() {
       <Credentials credentials={about?.credentials ?? []} />
       <CtaBand
         title={<>Let&rsquo;s see if we&rsquo;re a <em>good fit.</em></>}
-        lede="A free 20-minute conversation, in person or online, with no obligation to continue."
+        lede="Your first session, in person or online, includes 20 extra minutes, free, so there is time to get to know each other."
       />
     </div>
   );

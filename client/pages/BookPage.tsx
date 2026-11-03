@@ -9,7 +9,7 @@ import { Segmented } from '../site/controls';
 import { useContactDetails } from '../site/SiteChrome';
 import { submitBooking } from '../site/book/api';
 import {
-  DEFAULT_DAY_INDEX, DETAIL_FIELDS, defaultSession, defaultSlot, formatLabel, groupServices, isFreeSession,
+  DEFAULT_DAY_INDEX, DETAIL_FIELDS, defaultSession, defaultSlot, formatLabel, groupServices, isFirstSession,
   parseSettings, splitDuration, upcomingDays, validateDetails, whatsappLink,
   type BookingChoice, type BookingFormat, type ClientDetails, type DetailErrors,
 } from '../site/book/booking';
@@ -22,7 +22,7 @@ import { usePageMeta, useJsonLd } from '../hooks/usePageMeta';
 import { useHydrated } from '../hooks/useHydrated';
 import { pageGraph } from '../lib/schema';
 
-const LEDE = 'Your first 20 minutes are free, with no obligation to continue. Choose what suits you and Tania will confirm on WhatsApp.';
+const LEDE = 'Your first session includes 20 extra minutes, free. Choose what suits you and Tania will confirm on WhatsApp.';
 const FORMAT_OPTIONS = [
   { value: 'in-person', label: 'In person', sub: 'New Eskaton' },
   { value: 'online', label: 'Online', sub: 'Zoom or Meet' },
@@ -49,7 +49,7 @@ function Honeypot({ value, onChange }: { value: string; onChange: (value: string
 }
 
 export default function BookPage() {
-  usePageMeta('Book a Session in Dhaka or Online | Tania Subhashita, Psychologist', 'Request a free 20-minute consultation or a 60-minute session, in person at MIND CARE, New Eskaton, Dhaka, or online by Zoom or Google Meet.');
+  usePageMeta('Book a Session in Dhaka or Online | Tania Subhashita, Psychologist', 'Request a session, with 20 extra minutes free in your first, in person at MIND CARE, New Eskaton, Dhaka, or online by Zoom or Google Meet.');
   useJsonLd('page', pageGraph('WebPage', '/book', 'Book a session', [{ name: 'Book a session', path: '/book' }]));
   // the form starts from today's date and the query string, which the prerender cannot know
   const hydrated = useHydrated();
@@ -79,7 +79,7 @@ export default function BookPage() {
 
   // A pick that is not offered (an option renamed since the link was made) falls back.
   const { sessionDurations, timeSlots } = options;
-  const session = sessionDurations.includes(sessionPick) ? sessionPick : defaultSession(sessionDurations, preset.wantsFull);
+  const session = sessionDurations.includes(sessionPick) ? sessionPick : defaultSession(sessionDurations);
   const time = timeSlots.includes(timePick) ? timePick : defaultSlot(timeSlots);
   const chosenDay = days.find((d) => d.iso === day) ?? days[DEFAULT_DAY_INDEX];
   const choice: BookingChoice = {
@@ -225,7 +225,7 @@ export default function BookPage() {
             </div>
           </form>
 
-          <BookingSummary choice={choice} isFree={isFreeSession(session, sessionDurations)} />
+          <BookingSummary choice={choice} isFirst={isFirstSession(session, sessionDurations)} />
         </div>
       </section>
       )}

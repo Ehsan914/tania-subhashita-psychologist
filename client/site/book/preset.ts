@@ -1,12 +1,11 @@
 // What the Book page starts with: ?service= and ?program= from the Therapies and
-// Programs pages, or router state ({ serviceId, sessionType, message }) from older links.
+// Programs pages, or router state ({ serviceId, message }) from older links.
 import type { ProgramData, ServiceData } from '../../context/SiteDataContext';
 import { serviceForProgram } from '../therapies/therapyData';
 
 export interface BookingPreset {
   service: string;
   program: ProgramData | null;
-  wantsFull: boolean;
   message: string;
 }
 
@@ -31,7 +30,6 @@ export function readPreset(
   return {
     service: candidates.find(exists) ?? services[0]?.slug ?? '',
     program,
-    wantsFull: program !== null || stateField(state, 'sessionType') === 'full',
     message: program ? `I'd like to join the ${program.title} program.` : stateField(state, 'message') ?? '',
   };
 }

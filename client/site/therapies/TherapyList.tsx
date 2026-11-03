@@ -59,7 +59,7 @@ export function TherapyList({ areas, services, programFor, query, onQuery, listA
           </section>
         )) : (
           <p className="none">
-            Nothing matches “{query.trim()}”. You can describe it in your own words in a <Link className="link" to="/book">free consult</Link>.
+            Nothing matches “{query.trim()}”. You can describe it in your own words in a <Link className="link" to="/book">first session</Link>.
           </p>
         )}
       </div>

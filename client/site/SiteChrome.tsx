@@ -110,7 +110,7 @@ export function SiteHeader() {
             <img src="/logo-pink.svg" alt="Tania Subhashita, Psychologist" width={414} height={73} />
           </Link>
           <nav aria-label="Main"><ul><NavLinks /></ul></nav>
-          <Link className="book" to="/book">Book a free consult</Link>
+          <Link className="book" to="/book">Book a session</Link>
           <button
             className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="mobile-menu"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMenuOpen((open) => !open)}
@@ -122,7 +122,7 @@ export function SiteHeader() {
       <div className="mobile-menu" id="mobile-menu">
         <ul>
           <NavLinks />
-          <li><NavLink to="/book">Book a free consult</NavLink></li>
+          <li><NavLink to="/book">Book a session</NavLink></li>
         </ul>
         {contact.clinic && <p className="meta">{contact.clinic}, New Eskaton{contact.phone && ` · ${contact.phone}`}</p>}
       </div>

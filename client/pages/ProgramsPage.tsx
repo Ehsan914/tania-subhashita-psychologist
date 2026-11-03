@@ -26,7 +26,7 @@ export default function ProgramsPage() {
       </div>
       <CtaBand
         title={<>Not sure which is <em>right?</em></>}
-        lede="Start with a free 20-minute conversation and we'll decide together, or choose single sessions instead."
+        lede="Start with a first session, which includes 20 extra minutes, free, and we'll decide together, or choose single sessions instead."
       />
     </div>
   );

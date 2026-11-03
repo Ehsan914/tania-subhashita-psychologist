@@ -104,7 +104,7 @@ function llmsTxt(pages: RenderedPage[], data: SiteData): string {
   const facts = [
     contact && `- In person: ${[contact.practiceName, contact.address].filter(Boolean).join(', ')}`,
     '- Online: video sessions by Zoom or Google Meet, anywhere in Bangladesh',
-    '- Sessions: 60 minutes; the first 20 minutes are free',
+    '- Sessions: 60 minutes; the first session includes 20 extra minutes, free',
     contact?.openingHours && `- Hours: ${contact.openingHours}`,
     contact?.phone && `- Phone and WhatsApp: ${contact.phone}`,
     contact?.email && `- Email: ${contact.email}`,

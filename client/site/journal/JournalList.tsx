@@ -35,7 +35,7 @@ export function JournalList({ posts }: { posts: BlogPostData[] }) {
       </header>
       <section className="wrap" style={{ paddingBottom: 'var(--section)' }}>
         {first ? <FeaturePost post={first} /> : (
-          <p className="lede">New notes are on their way. Until then, a <Link className="link" to="/book">free 20-minute conversation</Link> is a good place to start.</p>
+          <p className="lede">New notes are on their way. Until then, a <Link className="link" to="/book">first session</Link> is a good place to start.</p>
         )}
         {rest.length > 0 && (
           <ul className="post-rows rule-list" data-reveal="list">

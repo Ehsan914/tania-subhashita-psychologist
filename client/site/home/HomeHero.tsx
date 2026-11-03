@@ -15,7 +15,7 @@ const FALLBACK = {
   titleLine2: 'to set it',
   titleLine3: 'down.',
   description: 'Compassionate, evidence-based therapy for anxiety, low mood, trauma and habits that have taken hold — in a calm room in New Eskaton, or online.',
-  ctaPrimaryText: 'Book a free consult',
+  ctaPrimaryText: 'Book a session',
   ctaSecondaryText: 'What I help with',
 };
 
